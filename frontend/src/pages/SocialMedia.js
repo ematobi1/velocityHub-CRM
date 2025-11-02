@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import {
-  FiSearch,
   FiLinkedin,
   FiTwitter,
   FiUser,
@@ -21,9 +20,7 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 function SocialMedia() {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('profiles');
   const [searchPlatform, setSearchPlatform] = useState('linkedin');
-  const [searchQuery, setSearchQuery] = useState('');
   const [importUrl, setImportUrl] = useState('');
   const [selectedProfile, setSelectedProfile] = useState(null);
 
@@ -120,13 +117,6 @@ function SocialMedia() {
       url: importUrl,
       createLead: true
     });
-  };
-
-  const getEngagementColor = (score) => {
-    if (score >= 80) return 'text-green-600';
-    if (score >= 60) return 'text-blue-600';
-    if (score >= 40) return 'text-yellow-600';
-    return 'text-gray-600';
   };
 
   const getEngagementBadge = (score) => {

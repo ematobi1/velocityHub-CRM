@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container, Paper, Typography, Box, Button, Grid, Card, CardContent,
   Table, TableHead, TableBody, TableRow, TableCell,
   Dialog, DialogTitle, DialogContent, DialogActions,
   Chip, IconButton, LinearProgress, Tabs, Tab,
-  Select, MenuItem, FormControl, InputLabel, Alert, Tooltip,
+  Select, MenuItem, FormControl, Alert, Tooltip,
   List, ListItem, ListItemText, ListItemSecondaryAction
 } from '@mui/material';
 import {
   FiActivity, FiPlay, FiPause, FiTrash2, FiSettings,
-  FiTrendingUp, FiCheckCircle, FiXCircle, FiClock,
-  FiZap, FiTarget, FiShield, FiUser
+  FiTrendingUp, FiCheckCircle, FiXCircle,
+  FiZap, FiTarget, FiUser
 } from 'react-icons/fi';
 import axios from 'axios';
 
@@ -35,11 +35,7 @@ const AIAgents = () => {
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -66,7 +62,11 @@ const AIAgents = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleCreateAgent = async (template) => {
     try {

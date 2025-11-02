@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery } from 'react-query';
 import { analyticsAPI } from '../utils/api';
 import {
@@ -13,17 +13,10 @@ import {
 } from 'react-icons/fi';
 
 function Analytics() {
-  const [period, setPeriod] = useState('6months');
-
   // Fetch all analytics data
   const { data: dashboard, isLoading: dashboardLoading } = useQuery(
     'analytics-dashboard',
     analyticsAPI.getDashboard
-  );
-
-  const { data: forecast } = useQuery(
-    'analytics-forecast',
-    analyticsAPI.getRevenueForecast
   );
 
   const { data: funnel } = useQuery('analytics-funnel', analyticsAPI.getFunnel);
