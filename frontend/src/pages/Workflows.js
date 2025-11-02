@@ -9,40 +9,12 @@ import {
   FiTrash2,
   FiPlus,
   FiZap,
-  FiClock,
   FiCheckCircle,
-  FiXCircle,
   FiActivity,
-  FiSettings,
   FiCopy
 } from 'react-icons/fi';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
-
-const TRIGGER_TYPES = [
-  { value: 'record_created', label: 'Record Created', icon: '📝' },
-  { value: 'field_updated', label: 'Field Updated', icon: '✏️' },
-  { value: 'stage_changed', label: 'Stage Changed', icon: '🔄' },
-  { value: 'score_threshold', label: 'Score Threshold', icon: '🎯' },
-  { value: 'time_based', label: 'Time-based', icon: '⏰' },
-  { value: 'inactivity', label: 'Inactivity', icon: '😴' },
-  { value: 'tag_added', label: 'Tag Added', icon: '🏷️' },
-  { value: 'email_opened', label: 'Email Opened', icon: '📧' },
-  { value: 'deal_won', label: 'Deal Won', icon: '🎉' }
-];
-
-const ACTION_TYPES = [
-  { value: 'send_email', label: 'Send Email', icon: '📧' },
-  { value: 'send_sms', label: 'Send SMS', icon: '💬' },
-  { value: 'create_task', label: 'Create Task', icon: '✅' },
-  { value: 'create_deal', label: 'Create Deal', icon: '💼' },
-  { value: 'add_tag', label: 'Add Tag', icon: '🏷️' },
-  { value: 'update_field', label: 'Update Field', icon: '✏️' },
-  { value: 'send_notification', label: 'Send Notification', icon: '🔔' },
-  { value: 'add_to_sequence', label: 'Add to Sequence', icon: '📨' },
-  { value: 'assign_owner', label: 'Assign Owner', icon: '👤' },
-  { value: 'webhook', label: 'Call Webhook', icon: '🔗' }
-];
 
 function Workflows() {
   const queryClient = useQueryClient();
