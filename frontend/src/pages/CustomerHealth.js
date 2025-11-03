@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container, Paper, Typography, Box, Button, Grid, Card, CardContent,
   Table, TableHead, TableBody, TableRow, TableCell,
@@ -9,8 +9,7 @@ import {
 } from '@mui/material';
 import {
   FiHeart, FiTrendingUp, FiTrendingDown, FiAlertTriangle,
-  FiDollarSign, FiTarget, FiActivity, FiZap, FiRefreshCw,
-  FiThumbsUp, FiThumbsDown, FiEye, FiBarChart2
+  FiDollarSign, FiTarget, FiActivity, FiRefreshCw, FiEye
 } from 'react-icons/fi';
 import axios from 'axios';
 import {
@@ -35,11 +34,7 @@ const CustomerHealth = () => {
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
-  useEffect(() => {
-    fetchData();
-  }, [filterStatus]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -65,7 +60,11 @@ const CustomerHealth = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterStatus, API_BASE_URL]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const getHealthColor = (status) => {
     const colors = {

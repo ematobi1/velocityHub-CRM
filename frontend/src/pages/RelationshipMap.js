@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container, Paper, Typography, Box, Button, Grid, Card, CardContent,
   Dialog, DialogTitle, DialogContent, DialogActions,
   Chip, List, ListItem, ListItemText, IconButton, Tooltip,
   TextField, Select, MenuItem, FormControl, InputLabel,
-  Alert, Tabs, Tab
+  Alert
 } from '@mui/material';
 import {
-  FiGlobe, FiUsers, FiTrendingUp, FiLink, FiPlusCircle,
-  FiTarget, FiRefreshCw, FiEye, FiSearch, FiAward, FiTrash2, FiEdit
+  FiGlobe, FiUsers, FiLink, FiPlusCircle,
+  FiTarget, FiRefreshCw, FiEye, FiAward, FiTrash2, FiEdit
 } from 'react-icons/fi';
 import axios from 'axios';
 
@@ -16,8 +16,6 @@ const RelationshipMap = () => {
   const [graphs, setGraphs] = useState([]);
   const [selectedGraph, setSelectedGraph] = useState(null);
   const [analytics, setAnalytics] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState(0);
   const [selectedNode, setSelectedNode] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [error, setError] = useState(null);
@@ -65,13 +63,8 @@ const RelationshipMap = () => {
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
       const token = localStorage.getItem('token');
       const config = { headers: { Authorization: `Bearer ${token}` } };
@@ -92,25 +85,12 @@ const RelationshipMap = () => {
     } catch (error) {
       console.error('Error fetching data:', error);
       setError('Failed to load data. Please try again.');
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [API_BASE_URL]);
 
-  const loadGraphForAccount = async (accountId) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `${API_BASE_URL}/relationship-graph/account/${accountId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setSelectedGraph(response.data);
-    } catch (error) {
-      console.error('Error loading graph:', error);
-      setError('Failed to load graph for account.');
-    }
-  };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleCreateGraph = async () => {
     try {
@@ -119,7 +99,6 @@ const RelationshipMap = () => {
         return;
       }
 
-      setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.post(
         `${API_BASE_URL}/relationship-graph`,
@@ -137,7 +116,6 @@ const RelationshipMap = () => {
       console.error('Error creating graph:', error);
       setError(error.response?.data?.error || 'Failed to create graph');
     } finally {
-      setLoading(false);
     }
   };
 
@@ -153,7 +131,6 @@ const RelationshipMap = () => {
         return;
       }
 
-      setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.post(
         `${API_BASE_URL}/relationship-graph/${selectedGraph._id}/node`,
@@ -184,7 +161,6 @@ const RelationshipMap = () => {
       console.error('Error adding node:', error);
       setError(error.response?.data?.error || 'Failed to add node');
     } finally {
-      setLoading(false);
     }
   };
 
@@ -200,7 +176,6 @@ const RelationshipMap = () => {
         return;
       }
 
-      setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.post(
         `${API_BASE_URL}/relationship-graph/${selectedGraph._id}/edge`,
@@ -225,7 +200,6 @@ const RelationshipMap = () => {
       console.error('Error adding edge:', error);
       setError(error.response?.data?.error || 'Failed to add relationship');
     } finally {
-      setLoading(false);
     }
   };
 
@@ -235,7 +209,6 @@ const RelationshipMap = () => {
         return;
       }
 
-      setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.put(
         `${API_BASE_URL}/relationship-graph/${selectedGraph._id}/node/${editNodeForm.id}`,
@@ -253,7 +226,6 @@ const RelationshipMap = () => {
       console.error('Error updating node:', error);
       setError(error.response?.data?.error || 'Failed to update node');
     } finally {
-      setLoading(false);
     }
   };
 
@@ -263,7 +235,6 @@ const RelationshipMap = () => {
         return;
       }
 
-      setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.delete(
         `${API_BASE_URL}/relationship-graph/${selectedGraph._id}/node/${nodeId}`,
@@ -280,13 +251,11 @@ const RelationshipMap = () => {
       console.error('Error deleting node:', error);
       setError(error.response?.data?.error || 'Failed to delete node');
     } finally {
-      setLoading(false);
     }
   };
 
   const handleDeleteGraph = async (graphId) => {
     try {
-      setLoading(true);
       const token = localStorage.getItem('token');
       await axios.delete(
         `${API_BASE_URL}/relationship-graph/${graphId}`,
@@ -305,7 +274,6 @@ const RelationshipMap = () => {
       console.error('Error deleting graph:', error);
       setError(error.response?.data?.error || 'Failed to delete graph');
     } finally {
-      setLoading(false);
     }
   };
 
@@ -315,7 +283,6 @@ const RelationshipMap = () => {
         return;
       }
 
-      setLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.get(
         `${API_BASE_URL}/relationship-graph/${selectedGraph._id}/paths/${targetNodeId}`,
@@ -329,7 +296,6 @@ const RelationshipMap = () => {
       console.error('Error finding paths:', error);
       setError(error.response?.data?.error || 'Failed to find paths');
     } finally {
-      setLoading(false);
     }
   };
 
@@ -340,7 +306,6 @@ const RelationshipMap = () => {
         return;
       }
 
-      setLoading(true);
       const token = localStorage.getItem('token');
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
@@ -350,8 +315,7 @@ const RelationshipMap = () => {
 
       if (!company.contacts || company.contacts.length === 0) {
         setError('No contacts found for this company');
-        setLoading(false);
-        return;
+          return;
       }
 
       // Add each contact as a node
@@ -391,7 +355,6 @@ const RelationshipMap = () => {
       console.error('Error importing contacts:', error);
       setError(error.response?.data?.error || 'Failed to import contacts');
     } finally {
-      setLoading(false);
     }
   };
 
