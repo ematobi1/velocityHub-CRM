@@ -3,17 +3,14 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import {
-  FiSearch,
   FiMail,
   FiPhone,
-  FiBriefcase,
-  FiMapPin,
   FiCheckCircle,
-  FiXCircle,
   FiZap,
   FiDatabase,
   FiRefreshCw,
-  FiUsers
+  FiUsers,
+  FiSearch
 } from 'react-icons/fi';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
