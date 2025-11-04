@@ -251,7 +251,19 @@ router.post('/templates/:template', async (req, res) => {
     res.status(201).json(workflow);
   } catch (error) {
     logger.error('Create workflow from template error:', error);
-    res.status(500).json({ error: 'Failed to create workflow' });
+
+    // Return detailed error for debugging
+    const errorMessage = error.message || 'Failed to create workflow';
+    const validationErrors = error.errors ? Object.keys(error.errors).map(key => ({
+      field: key,
+      message: error.errors[key].message
+    })) : null;
+
+    res.status(500).json({
+      error: errorMessage,
+      details: validationErrors,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 
