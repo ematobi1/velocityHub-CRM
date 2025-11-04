@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Container, Paper, Typography, Box, Button, Grid, Card, CardContent,
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Chip, List, ListItem, ListItemText, IconButton, Tooltip,
+  Chip, List, ListItem, ListItemButton, ListItemText, IconButton, Tooltip,
   TextField, Select, MenuItem, FormControl, InputLabel,
   Alert
 } from '@mui/material';
@@ -585,7 +585,7 @@ const RelationshipMap = () => {
         {/* Analytics Overview */}
         {analytics && (
           <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -602,7 +602,7 @@ const RelationshipMap = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -619,7 +619,7 @@ const RelationshipMap = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -636,7 +636,7 @@ const RelationshipMap = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -658,7 +658,7 @@ const RelationshipMap = () => {
         {/* Main Content */}
         <Grid container spacing={3}>
           {/* Graph Visualization */}
-          <Grid item xs={12} lg={8}>
+          <Grid size={{ xs: 12, lg: 8 }}>
             <Paper sx={{ p: 3 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Typography variant="h6">
@@ -696,25 +696,25 @@ const RelationshipMap = () => {
                 Legend
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: '#d32f2f' }} />
                     <Typography variant="caption">Decision Maker</Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: '#2e7d32' }} />
                     <Typography variant="caption">Champion</Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: '#1976d2' }} />
                     <Typography variant="caption">Influencer</Typography>
                   </Box>
                 </Grid>
-                <Grid item xs={6} sm={3}>
+                <Grid size={{ xs: 6, sm: 3 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box sx={{ width: 20, height: 20, borderRadius: '50%', bgcolor: '#f57c00' }} />
                     <Typography variant="caption">Blocker</Typography>
@@ -725,7 +725,7 @@ const RelationshipMap = () => {
           </Grid>
 
           {/* Sidebar */}
-          <Grid item xs={12} lg={4}>
+          <Grid size={{ xs: 12, lg: 4 }}>
             {/* Key Influencers */}
             <Paper sx={{ p: 2, mb: 2 }}>
               <Typography variant="h6" gutterBottom>
@@ -737,9 +737,8 @@ const RelationshipMap = () => {
                     .filter(n => n.attributes?.influencer || n.attributes?.decisionMaker || n.attributes?.champion)
                     .slice(0, 5)
                     .map((node) => (
-                      <ListItem
+                      <ListItemButton
                         key={node.id}
-                        button
                         onClick={() => {
                           setSelectedNode(node);
                           setShowNodeModal(true);
@@ -750,7 +749,7 @@ const RelationshipMap = () => {
                           primary={node.name}
                           secondary={`${node.title} • Influence: ${node.influence || node.centrality || 0}`}
                         />
-                      </ListItem>
+                      </ListItemButton>
                     ))}
                   {(!selectedGraph.nodes || selectedGraph.nodes.length === 0) && (
                     <ListItem>
@@ -825,14 +824,14 @@ const RelationshipMap = () => {
           </Typography>
           <Grid container spacing={2}>
             {graphs.length === 0 ? (
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Alert severity="info">
                   No relationship graphs yet. Create your first graph to start mapping connections!
                 </Alert>
               </Grid>
             ) : (
               graphs.map((graph) => (
-                <Grid item xs={12} sm={6} md={4} key={graph._id}>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }} key={graph._id}>
                   <Card
                     sx={{
                       cursor: 'pointer',
