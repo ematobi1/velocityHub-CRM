@@ -113,7 +113,17 @@ function Workflows() {
         setCreatingFromTemplate(false);
       },
       onError: (error) => {
-        toast.error(error.response?.data?.error || 'Failed to create workflow');
+        const errorData = error.response?.data;
+        let errorMessage = errorData?.error || 'Failed to create workflow';
+
+        // Add validation details if available
+        if (errorData?.details && errorData.details.length > 0) {
+          const validationMessages = errorData.details.map(d => d.message).join(', ');
+          errorMessage += ': ' + validationMessages;
+        }
+
+        toast.error(errorMessage, { duration: 6000 });
+        console.error('Workflow creation error:', errorData);
         setCreatingFromTemplate(false);
       }
     }
