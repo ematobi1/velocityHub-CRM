@@ -153,7 +153,7 @@ const CustomerHealth = () => {
         {/* Analytics Overview */}
         {analytics && (
           <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -170,7 +170,7 @@ const CustomerHealth = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -189,7 +189,7 @@ const CustomerHealth = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -208,7 +208,7 @@ const CustomerHealth = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -232,7 +232,7 @@ const CustomerHealth = () => {
         {/* Charts Section */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
           {/* Health Status Distribution */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper sx={{ p: 3, height: 400 }}>
               <Typography variant="h6" gutterBottom>
                 Health Status Distribution
@@ -268,7 +268,7 @@ const CustomerHealth = () => {
           </Grid>
 
           {/* Churn Risk Distribution */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper sx={{ p: 3, height: 400 }}>
               <Typography variant="h6" gutterBottom>
                 Churn Risk Distribution
@@ -294,7 +294,7 @@ const CustomerHealth = () => {
           </Grid>
 
           {/* Health Trends Over Time */}
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Paper sx={{ p: 3, height: 400 }}>
               <Typography variant="h6" gutterBottom>
                 Average Health Score Trend (Last 30 Days)
@@ -441,7 +441,7 @@ const CustomerHealth = () => {
               ) : (
                 <Grid container spacing={2}>
                   {atRiskCustomers.map((record) => (
-                    <Grid item xs={12} md={6} key={record._id}>
+                    <Grid size={{ xs: 12, md: 6 }} key={record._id}>
                       <Card sx={{ border: `2px solid ${getHealthColor(record.healthStatus)}` }}>
                         <CardContent>
                           <Box sx={{ display: 'flex', justify: 'space-between', alignItems: 'start', mb: 2 }}>
@@ -537,7 +537,7 @@ const CustomerHealth = () => {
               ) : (
                 <Grid container spacing={2}>
                   {opportunities.map((record) => (
-                    <Grid item xs={12} md={6} key={record._id}>
+                    <Grid size={{ xs: 12, md: 6 }} key={record._id}>
                       <Card sx={{ border: '2px solid #2e7d32' }}>
                         <CardContent>
                           <Box sx={{ display: 'flex', justify: 'space-between', alignItems: 'start', mb: 2 }}>
@@ -630,7 +630,7 @@ const CustomerHealth = () => {
               </DialogTitle>
               <DialogContent>
                 <Grid container spacing={2} sx={{ mb: 3 }}>
-                  <Grid item xs={4}>
+                  <Grid size={{ xs: 4 }}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
                       <Typography variant="h4">{selectedRecord.overallScore}</Typography>
                       <Typography variant="caption" color="text.secondary">
@@ -638,7 +638,7 @@ const CustomerHealth = () => {
                       </Typography>
                     </Paper>
                   </Grid>
-                  <Grid item xs={4}>
+                  <Grid size={{ xs: 4 }}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
                       <Typography variant="h4">
                         {selectedRecord.predictions?.churnRisk?.probability || 0}%
@@ -648,7 +648,7 @@ const CustomerHealth = () => {
                       </Typography>
                     </Paper>
                   </Grid>
-                  <Grid item xs={4}>
+                  <Grid size={{ xs: 4 }}>
                     <Paper sx={{ p: 2, textAlign: 'center' }}>
                       <Typography variant="h4">
                         {selectedRecord.predictions?.expansionLikelihood?.probability || 0}%

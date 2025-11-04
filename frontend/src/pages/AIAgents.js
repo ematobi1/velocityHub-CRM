@@ -263,7 +263,7 @@ const AIAgents = () => {
         {/* Analytics Overview */}
         {analytics && (
           <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -280,7 +280,7 @@ const AIAgents = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -297,7 +297,7 @@ const AIAgents = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -316,7 +316,7 @@ const AIAgents = () => {
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -476,7 +476,7 @@ const AIAgents = () => {
           {selectedTab === 1 && (
             <Grid container spacing={3}>
               {agents.filter(a => a.status === 'active').map((agent) => (
-                <Grid item xs={12} md={6} key={agent._id}>
+                <Grid size={{ xs: 12, md: 6 }} key={agent._id}>
                   <Card>
                     <CardContent>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
@@ -543,7 +543,7 @@ const AIAgents = () => {
                 </Grid>
               ))}
               {agents.filter(a => a.status === 'active').length === 0 && (
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Alert severity="info">
                     No active agents. Activate an agent to see it here.
                   </Alert>
@@ -623,7 +623,7 @@ const AIAgents = () => {
           <DialogContent>
             <Grid container spacing={3} sx={{ mt: 1 }}>
               {templates.map((template) => (
-                <Grid item xs={12} sm={6} key={template.name}>
+                <Grid size={{ xs: 12, sm: 6 }} key={template.name}>
                   <Card
                     sx={{
                       cursor: creatingAgent ? 'not-allowed' : 'pointer',
@@ -750,7 +750,7 @@ const AIAgents = () => {
                     Performance Metrics
                   </Typography>
                   <Grid container spacing={2} sx={{ mt: 1 }}>
-                    <Grid item xs={4}>
+                    <Grid size={{ xs: 4 }}>
                       <Paper sx={{ p: 2, textAlign: 'center' }}>
                         <Typography variant="h4">
                           {selectedAgent.performanceMetrics.totalActions}
@@ -760,7 +760,7 @@ const AIAgents = () => {
                         </Typography>
                       </Paper>
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid size={{ xs: 4 }}>
                       <Paper sx={{ p: 2, textAlign: 'center' }}>
                         <Typography variant="h4">
                           {Math.round(selectedAgent.performanceMetrics.successRate || 0)}%
@@ -770,7 +770,7 @@ const AIAgents = () => {
                         </Typography>
                       </Paper>
                     </Grid>
-                    <Grid item xs={4}>
+                    <Grid size={{ xs: 4 }}>
                       <Paper sx={{ p: 2, textAlign: 'center' }}>
                         <Typography variant="h4">
                           {selectedAgent.performanceMetrics.impactScore}
