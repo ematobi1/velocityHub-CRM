@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { dealsAPI, contactsAPI } from '../utils/api';
 import toast from 'react-hot-toast';
 import { FiPlus, FiDollarSign, FiTrendingUp, FiActivity, FiEdit2, FiEye, FiX } from 'react-icons/fi';
+import DealDetailsModal from '../components/DealDetailsModal';
+import websocketService from '../services/websocket';
 
 const STAGES = [
   { key: 'prospecting', label: 'Prospecting', color: 'bg-gray-500' },
@@ -17,6 +19,8 @@ function Pipeline() {
   const queryClient = useQueryClient();
   const [isNewDealModalOpen, setIsNewDealModalOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [selectedDeal, setSelectedDeal] = useState(null);
+  const [dealModalMode, setDealModalMode] = useState('view');
   const [newDealForm, setNewDealForm] = useState({
     name: '',
     value: '',
@@ -41,6 +45,30 @@ function Pipeline() {
 
     return () => clearInterval(interval);
   }, [heroImages.length]);
+
+  // Listen for real-time deal updates
+  useEffect(() => {
+    const unsubscribe1 = websocketService.on('deal:updated', () => {
+      queryClient.invalidateQueries('deals-pipeline');
+      queryClient.invalidateQueries('deals-analytics');
+    });
+
+    const unsubscribe2 = websocketService.on('deal:created', () => {
+      queryClient.invalidateQueries('deals-pipeline');
+      queryClient.invalidateQueries('deals-analytics');
+    });
+
+    const unsubscribe3 = websocketService.on('deal:stage_changed', () => {
+      queryClient.invalidateQueries('deals-pipeline');
+      queryClient.invalidateQueries('deals-analytics');
+    });
+
+    return () => {
+      unsubscribe1();
+      unsubscribe2();
+      unsubscribe3();
+    };
+  }, [queryClient]);
 
   // Fetch deals grouped by stage
   const { data: dealsData, isLoading } = useQuery(
@@ -384,7 +412,8 @@ function Pipeline() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              toast.info('View deal details (coming soon)');
+                              setSelectedDeal(deal);
+                              setDealModalMode('view');
                             }}
                             className="p-1 hover:bg-gray-100 rounded"
                             title="View"
@@ -394,7 +423,8 @@ function Pipeline() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              toast.info('Edit deal (coming soon)');
+                              setSelectedDeal(deal);
+                              setDealModalMode('edit');
                             }}
                             className="p-1 hover:bg-gray-100 rounded"
                             title="Edit"
@@ -417,6 +447,15 @@ function Pipeline() {
             );
           })}
         </div>
+      )}
+
+      {/* Deal Details Modal */}
+      {selectedDeal && (
+        <DealDetailsModal
+          deal={selectedDeal}
+          onClose={() => setSelectedDeal(null)}
+          mode={dealModalMode}
+        />
       )}
 
       {/* New Deal Modal */}

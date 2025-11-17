@@ -349,13 +349,67 @@ class WorkflowEngine {
   }
 
   async sendEmailAction(action, record) {
-    // TODO: Integrate with email service (SendGrid, etc.)
-    logger.info(`Would send email: ${action.config.subject} to ${action.config.recipient}`);
+    const nodemailer = require('nodemailer');
+    const { subject, body, recipient } = action.config;
+
+    try {
+      // Configure email transporter (using environment variables)
+      const transporter = nodemailer.createTransporter({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: process.env.SMTP_PORT || 587,
+        secure: false,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
+        }
+      });
+
+      const recipientEmail = this.replaceVariables(recipient, record);
+      const emailSubject = this.replaceVariables(subject, record);
+      const emailBody = this.replaceVariables(body, record);
+
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        to: recipientEmail,
+        subject: emailSubject,
+        html: emailBody
+      });
+
+      logger.info(`Email sent: ${emailSubject} to ${recipientEmail}`);
+    } catch (error) {
+      logger.error('Failed to send email:', error);
+      // Don't throw - log and continue with other actions
+    }
   }
 
   async sendSMSAction(action, record) {
-    // TODO: Integrate with Twilio
-    logger.info(`Would send SMS to ${record.phone || 'unknown'}`);
+    const twilio = require('twilio');
+    const { message, phone } = action.config;
+
+    try {
+      if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+        logger.warn('Twilio credentials not configured. SMS not sent.');
+        return;
+      }
+
+      const client = twilio(
+        process.env.TWILIO_ACCOUNT_SID,
+        process.env.TWILIO_AUTH_TOKEN
+      );
+
+      const phoneNumber = this.replaceVariables(phone, record);
+      const smsMessage = this.replaceVariables(message, record);
+
+      await client.messages.create({
+        body: smsMessage,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: phoneNumber
+      });
+
+      logger.info(`SMS sent to ${phoneNumber}`);
+    } catch (error) {
+      logger.error('Failed to send SMS:', error);
+    }
   }
 
   async createTaskAction(action, record) {
@@ -417,12 +471,56 @@ class WorkflowEngine {
 
   async assignOwnerAction(action, record) {
     const { assignmentType, ownerId } = action.config;
+    const User = require('../models/User');
 
     if (assignmentType === 'specific' && ownerId) {
       record.owner = ownerId;
       await record.save();
+    } else if (assignmentType === 'round_robin') {
+      // Get all active sales reps
+      const users = await User.find({ role: 'sales_rep', isActive: true }).sort({ _id: 1 });
+
+      if (users.length > 0) {
+        // Simple round-robin: get the last assigned index from a counter
+        const Lead = require('../models/Lead');
+        const lastLead = await Lead.findOne({ owner: { $exists: true } }).sort({ createdAt: -1 });
+
+        let nextIndex = 0;
+        if (lastLead && lastLead.owner) {
+          const lastIndex = users.findIndex(u => u._id.equals(lastLead.owner));
+          nextIndex = (lastIndex + 1) % users.length;
+        }
+
+        record.owner = users[nextIndex]._id;
+        await record.save();
+        logger.info(`Assigned via round-robin to user ${users[nextIndex].email}`);
+      }
+    } else if (assignmentType === 'least_loaded') {
+      // Assign to user with fewest active leads
+      const Lead = require('../models/Lead');
+      const users = await User.find({ role: 'sales_rep', isActive: true });
+
+      let minCount = Infinity;
+      let selectedUser = null;
+
+      for (const user of users) {
+        const count = await Lead.countDocuments({
+          owner: user._id,
+          status: { $in: ['new', 'contacted', 'qualified'] }
+        });
+
+        if (count < minCount) {
+          minCount = count;
+          selectedUser = user;
+        }
+      }
+
+      if (selectedUser) {
+        record.owner = selectedUser._id;
+        await record.save();
+        logger.info(`Assigned via least-loaded to user ${selectedUser.email}`);
+      }
     }
-    // TODO: Implement round_robin and least_loaded assignment
   }
 
   async changeStageAction(action, record) {
@@ -441,32 +539,107 @@ class WorkflowEngine {
   }
 
   async createActivityAction(action, record) {
-    // TODO: Create activity log entry
-    logger.info(`Would create activity for record ${record._id}`);
+    const { activityType, activityNote } = action.config;
+
+    if (!record.activities) record.activities = [];
+
+    record.activities.push({
+      type: activityType || 'note',
+      note: this.replaceVariables(activityNote || 'Activity created by workflow', record),
+      date: new Date(),
+      createdBy: 'system'
+    });
+
+    await record.save();
+    logger.info(`Created activity for record ${record._id}`);
   }
 
   async sendNotificationAction(action, record) {
-    // TODO: Send in-app notification
-    logger.info(`Would send notification: ${action.config.notificationMessage}`);
+    const Notification = require('../models/Notification');
+    const websocketService = require('./websocket');
+    const { notificationTitle, notificationMessage, notificationRecipient } = action.config;
+
+    const title = this.replaceVariables(notificationTitle, record);
+    const message = this.replaceVariables(notificationMessage, record);
+
+    // Determine recipient
+    let recipientId = record.owner;
+    if (notificationRecipient && notificationRecipient !== 'owner') {
+      recipientId = notificationRecipient;
+    }
+
+    if (recipientId) {
+      const notification = new Notification({
+        user: recipientId,
+        type: 'workflow',
+        title,
+        message,
+        data: {
+          recordId: record._id,
+          recordType: record.constructor.modelName
+        }
+      });
+
+      await notification.save();
+
+      // Send via WebSocket
+      if (websocketService.isConnected()) {
+        websocketService.emitNotification(recipientId, notification);
+      }
+
+      logger.info(`Sent notification to user ${recipientId}`);
+    }
   }
 
   async webhookAction(action, record) {
+    const axios = require('axios');
     const { webhookUrl, webhookMethod, webhookHeaders, webhookBody } = action.config;
 
-    // TODO: Make HTTP request to webhook URL
-    logger.info(`Would call webhook: ${webhookMethod} ${webhookUrl}`);
+    try {
+      const url = this.replaceVariables(webhookUrl, record);
+      const headers = webhookHeaders || {};
+      const body = webhookBody || { record };
+
+      await axios({
+        method: webhookMethod || 'POST',
+        url,
+        headers,
+        data: body
+      });
+
+      logger.info(`Webhook called: ${webhookMethod} ${url}`);
+    } catch (error) {
+      logger.error('Webhook call failed:', error);
+    }
   }
 
   async addToSequenceAction(action, record) {
-    // TODO: Add record to email sequence
-    logger.info(`Would add to sequence ${action.config.sequenceId}`);
+    const EmailSequence = require('../models/EmailSequence');
+    const { sequenceId } = action.config;
+
+    try {
+      const sequence = await EmailSequence.findById(sequenceId);
+
+      if (sequence) {
+        if (!sequence.enrolledLeads) sequence.enrolledLeads = [];
+
+        if (!sequence.enrolledLeads.includes(record._id)) {
+          sequence.enrolledLeads.push(record._id);
+          await sequence.save();
+          logger.info(`Added record ${record._id} to sequence ${sequenceId}`);
+        }
+      }
+    } catch (error) {
+      logger.error('Failed to add to sequence:', error);
+    }
   }
 
   async createNoteAction(action, record) {
-    // TODO: Create note
+    const { noteContent } = action.config;
+
     if (!record.notes) record.notes = [];
     record.notes.push({
-      content: this.replaceVariables(action.config.noteContent, record),
+      content: this.replaceVariables(noteContent, record),
       createdAt: new Date()
     });
     await record.save();
