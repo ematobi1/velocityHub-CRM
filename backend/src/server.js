@@ -5,6 +5,15 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const logger = require('./utils/logger');
+const { validateEnvironment } = require('./utils/validateEnv');
+
+// Validate environment variables before starting
+try {
+  validateEnvironment();
+} catch (error) {
+  logger.error('Failed to start server due to environment validation errors');
+  process.exit(1);
+}
 
 // Import routes
 const authRoutes = require('./routes/auth');
