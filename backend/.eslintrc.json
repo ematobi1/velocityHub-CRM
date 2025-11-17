@@ -1,0 +1,15 @@
+{
+  "extends": "../.eslintrc.json",
+  "env": {
+    "node": true,
+    "es2022": true,
+    "jest": true
+  },
+  "plugins": ["node"],
+  "rules": {
+    "no-console": "warn",
+    "node/no-unsupported-features/es-syntax": "off",
+    "node/no-missing-require": "error",
+    "node/no-unpublished-require": "off"
+  }
+}
