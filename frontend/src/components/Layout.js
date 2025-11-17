@@ -1,14 +1,29 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { FiHome, FiUsers, FiLogOut, FiMenu, FiX, FiTrello, FiBriefcase, FiHeadphones, FiActivity, FiZap, FiLinkedin, FiDatabase, FiCpu, FiHeart, FiGlobe } from 'react-icons/fi';
 import ChatWidget from './ChatWidget';
+import NotificationCenter from './NotificationCenter';
+import websocketService from '../services/websocket';
 
 function Layout() {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = React.useState(true);
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token && !websocketService.isConnected()) {
+      websocketService.connect(token);
+    }
+
+    return () => {
+      // Cleanup on unmount
+      websocketService.disconnect();
+    };
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -153,6 +168,7 @@ function Layout() {
                 </span>
               )}
             </div>
+            <NotificationCenter />
           </div>
         </header>
 

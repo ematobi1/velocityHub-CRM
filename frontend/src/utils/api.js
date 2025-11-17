@@ -72,6 +72,7 @@ export const dealsAPI = {
   moveStage: (id, stage) => api.patch(`/deals/${id}/stage`, { stage }),
   addActivity: (id, activity) => api.post(`/deals/${id}/activities`, activity),
   getAnalytics: () => api.get('/deals/analytics'),
+  getAIInsights: (id) => api.get(`/deals/${id}/ai-analysis`),
   requestAIAnalysis: (id) => api.post(`/deals/${id}/ai-analysis`)
 };
 

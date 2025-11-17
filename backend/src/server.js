@@ -1,10 +1,12 @@
 require('dotenv').config();
 const express = require('express');
+const http = require('http');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const logger = require('./utils/logger');
+const websocketService = require('./services/websocket');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -28,7 +30,11 @@ const customerHealthRoutes = require('./routes/customerHealth');
 const relationshipGraphRoutes = require('./routes/relationshipGraph');
 const aiAnalyticsRoutes = require('./routes/aiAnalytics');
 
+// Notifications
+const notificationsRoutes = require('./routes/notifications');
+
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 5001;
 
 // Security middleware
@@ -90,6 +96,9 @@ app.use('/api/customer-health', customerHealthRoutes);
 app.use('/api/relationship-graph', relationshipGraphRoutes);
 app.use('/api/ai-analytics', aiAnalyticsRoutes);
 
+// Notifications
+app.use('/api/notifications', notificationsRoutes);
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({
@@ -116,11 +125,15 @@ mongoose.connect(process.env.MONGODB_URI, {
   .then(() => {
     logger.info('✅ Connected to MongoDB');
 
+    // Initialize WebSocket
+    websocketService.initialize(server);
+
     // Start server
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       logger.info(`🚀 Server running at http://localhost:${PORT}`);
       logger.info(`🌐 Accepting requests from: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
       logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
+      logger.info(`⚡ WebSocket server ready for real-time updates`);
     });
   })
   .catch((error) => {

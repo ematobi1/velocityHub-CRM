@@ -13,6 +13,7 @@ import {
   FiActivity,
   FiCopy
 } from 'react-icons/fi';
+import WorkflowBuilder from '../components/WorkflowBuilder';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
@@ -20,6 +21,7 @@ function Workflows() {
   const queryClient = useQueryClient();
   const [selectedWorkflow, setSelectedWorkflow] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showBuilder, setShowBuilder] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdWorkflow, setCreatedWorkflow] = useState(null);
@@ -88,6 +90,31 @@ function Workflows() {
       onSuccess: () => {
         toast.success('Workflow deleted');
         queryClient.invalidateQueries('workflows');
+      }
+    }
+  );
+
+  // Create workflow mutation
+  const createWorkflowMutation = useMutation(
+    async (workflowData) => {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${API_URL}/workflows`,
+        workflowData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return response.data;
+    },
+    {
+      onSuccess: (data) => {
+        setCreatedWorkflow(data);
+        toast.success('Workflow created successfully!');
+        setShowBuilder(false);
+        setShowSuccessModal(true);
+        queryClient.invalidateQueries('workflows');
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.error || 'Failed to create workflow');
       }
     }
   );
@@ -545,44 +572,83 @@ function Workflows() {
         </div>
       )}
 
-      {/* Create Workflow Modal */}
+      {/* Workflow Builder Modal */}
+      {showBuilder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-semibold text-gray-900">Create Custom Workflow</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Build a custom automation workflow from scratch
+              </p>
+            </div>
+
+            <div className="p-6">
+              <WorkflowBuilder
+                onSave={(workflowData) => createWorkflowMutation.mutate(workflowData)}
+                onCancel={() => setShowBuilder(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Start Modal (old create modal) */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Create Workflow</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Choose How to Create</h2>
             </div>
 
-            <div className="p-6">
-              <p className="text-gray-600">
-                Workflow builder coming soon! For now, you can use pre-built templates or create workflows via API.
-              </p>
-              <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-                <h3 className="text-sm font-semibold text-blue-900 mb-2">Quick Start</h3>
-                <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-                  <li>Choose a template to get started</li>
-                  <li>Activate the workflow</li>
-                  <li>Monitor executions in real-time</li>
-                  <li>Customize settings as needed</li>
-                </ol>
-              </div>
-            </div>
-
-            <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+            <div className="p-6 space-y-4">
               <button
-                onClick={() => setShowCreateModal(false)}
-                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+                onClick={() => {
+                  setShowCreateModal(false);
+                  setShowBuilder(true);
+                }}
+                className="w-full p-6 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-left group"
               >
-                Close
+                <div className="flex items-start">
+                  <div className="text-4xl mr-4">⚙️</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600">
+                      Build Custom Workflow
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Create a fully customized workflow with your own triggers and actions
+                    </p>
+                  </div>
+                </div>
               </button>
+
               <button
                 onClick={() => {
                   setShowCreateModal(false);
                   setShowTemplates(true);
                 }}
-                className="btn btn-primary"
+                className="w-full p-6 border-2 border-gray-200 rounded-lg hover:border-primary-500 hover:bg-primary-50 transition-all text-left group"
               >
-                Browse Templates
+                <div className="flex items-start">
+                  <div className="text-4xl mr-4">📋</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-primary-600">
+                      Use a Template
+                    </h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Get started quickly with a pre-built workflow template
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div className="p-6 border-t border-gray-200 flex justify-end">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
               </button>
             </div>
           </div>
