@@ -349,13 +349,76 @@ class WorkflowEngine {
   }
 
   async sendEmailAction(action, record) {
-    // TODO: Integrate with email service (SendGrid, etc.)
-    logger.info(`Would send email: ${action.config.subject} to ${action.config.recipient}`);
+    const nodemailer = require('nodemailer');
+    const { recipient, subject, body } = action.config;
+
+    // Check if email service is configured
+    if (!process.env.SMTP_HOST) {
+      logger.warn('Email service not configured, skipping email send');
+      return;
+    }
+
+    try {
+      const transporter = nodemailer.createTransporter({
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT || 587,
+        secure: process.env.SMTP_PORT == 465,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASSWORD,
+        },
+      });
+
+      const emailRecipient = this.replaceVariables(recipient, record);
+      const emailSubject = this.replaceVariables(subject, record);
+      const emailBody = this.replaceVariables(body, record);
+
+      await transporter.sendMail({
+        from: process.env.SMTP_FROM || 'noreply@velocityhub.com',
+        to: emailRecipient,
+        subject: emailSubject,
+        html: emailBody,
+      });
+
+      logger.info(`Email sent successfully to ${emailRecipient}`);
+    } catch (error) {
+      logger.error('Failed to send email:', error);
+      throw error;
+    }
   }
 
   async sendSMSAction(action, record) {
-    // TODO: Integrate with Twilio
-    logger.info(`Would send SMS to ${record.phone || 'unknown'}`);
+    const { message, to } = action.config;
+
+    // Check if Twilio is configured
+    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+      logger.warn('Twilio not configured, skipping SMS send');
+      return;
+    }
+
+    try {
+      const twilio = require('twilio');
+      const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+      const phoneNumber = to || record.phone;
+      if (!phoneNumber) {
+        logger.warn('No phone number available for SMS');
+        return;
+      }
+
+      const smsMessage = this.replaceVariables(message, record);
+
+      await client.messages.create({
+        body: smsMessage,
+        from: process.env.TWILIO_PHONE_NUMBER,
+        to: phoneNumber,
+      });
+
+      logger.info(`SMS sent successfully to ${phoneNumber}`);
+    } catch (error) {
+      logger.error('Failed to send SMS:', error);
+      throw error;
+    }
   }
 
   async createTaskAction(action, record) {
@@ -416,13 +479,54 @@ class WorkflowEngine {
   }
 
   async assignOwnerAction(action, record) {
-    const { assignmentType, ownerId } = action.config;
+    const { assignmentType, ownerId, teamId } = action.config;
+    const User = require('../models/User');
 
     if (assignmentType === 'specific' && ownerId) {
       record.owner = ownerId;
       await record.save();
+      return;
     }
-    // TODO: Implement round_robin and least_loaded assignment
+
+    if (assignmentType === 'round_robin' && teamId) {
+      // Get all active users in the team
+      const users = await User.find({ team: teamId, isActive: true }).sort({ lastAssignedAt: 1 });
+
+      if (users.length > 0) {
+        const assignedUser = users[0];
+        record.owner = assignedUser._id;
+        assignedUser.lastAssignedAt = new Date();
+        await Promise.all([record.save(), assignedUser.save()]);
+        logger.info(`Assigned to ${assignedUser.email} via round-robin`);
+      }
+    }
+
+    if (assignmentType === 'least_loaded' && teamId) {
+      // Get users with their current lead/deal counts
+      const users = await User.find({ team: teamId, isActive: true });
+      const Lead = require('../models/Lead');
+      const Deal = require('../models/Deal');
+
+      let leastLoadedUser = null;
+      let minCount = Infinity;
+
+      for (const user of users) {
+        const leadCount = await Lead.countDocuments({ owner: user._id, status: { $nin: ['converted', 'lost'] } });
+        const dealCount = await Deal.countDocuments({ owner: user._id, stage: { $nin: ['closed_won', 'closed_lost'] } });
+        const totalCount = leadCount + dealCount;
+
+        if (totalCount < minCount) {
+          minCount = totalCount;
+          leastLoadedUser = user;
+        }
+      }
+
+      if (leastLoadedUser) {
+        record.owner = leastLoadedUser._id;
+        await record.save();
+        logger.info(`Assigned to ${leastLoadedUser.email} via least-loaded (${minCount} active records)`);
+      }
+    }
   }
 
   async changeStageAction(action, record) {
@@ -441,25 +545,129 @@ class WorkflowEngine {
   }
 
   async createActivityAction(action, record) {
-    // TODO: Create activity log entry
-    logger.info(`Would create activity for record ${record._id}`);
+    const { activityType, activityNotes, activityDuration } = action.config;
+
+    // Create activity log (you may need to create an Activity model if not exists)
+    const activityData = {
+      type: activityType || 'note',
+      entityType: record.constructor.modelName.toLowerCase(),
+      entityId: record._id,
+      userId: record.owner,
+      notes: this.replaceVariables(activityNotes, record),
+      duration: activityDuration,
+      timestamp: new Date(),
+    };
+
+    // Store in record's activity array or separate collection
+    if (!record.activities) record.activities = [];
+    record.activities.push(activityData);
+    await record.save();
+
+    logger.info(`Created ${activityType} activity for record ${record._id}`);
   }
 
   async sendNotificationAction(action, record) {
-    // TODO: Send in-app notification
-    logger.info(`Would send notification: ${action.config.notificationMessage}`);
+    const { notificationMessage, notificationTitle, notificationType, recipientId } = action.config;
+    const io = require('../server').io; // Socket.io instance
+
+    const notification = {
+      title: this.replaceVariables(notificationTitle || 'Notification', record),
+      message: this.replaceVariables(notificationMessage, record),
+      type: notificationType || 'info',
+      entityType: record.constructor.modelName.toLowerCase(),
+      entityId: record._id,
+      timestamp: new Date(),
+      read: false,
+    };
+
+    const recipient = recipientId || record.owner;
+
+    // Emit to specific user via socket.io
+    if (io) {
+      io.to(`user_${recipient}`).emit('notification', notification);
+    }
+
+    // Store notification in database for persistence
+    if (!record.notifications) record.notifications = [];
+    record.notifications.push(notification);
+    await record.save();
+
+    logger.info(`Sent notification to user ${recipient}: ${notificationMessage}`);
   }
 
   async webhookAction(action, record) {
+    const axios = require('axios');
     const { webhookUrl, webhookMethod, webhookHeaders, webhookBody } = action.config;
 
-    // TODO: Make HTTP request to webhook URL
-    logger.info(`Would call webhook: ${webhookMethod} ${webhookUrl}`);
+    try {
+      const url = this.replaceVariables(webhookUrl, record);
+      const method = webhookMethod || 'POST';
+      const headers = webhookHeaders || { 'Content-Type': 'application/json' };
+
+      // Build request body with record data
+      let body = webhookBody || record.toObject();
+      if (typeof body === 'string') {
+        body = this.replaceVariables(body, record);
+        try {
+          body = JSON.parse(body);
+        } catch (e) {
+          // Keep as string if not valid JSON
+        }
+      }
+
+      const response = await axios({
+        method,
+        url,
+        headers,
+        data: body,
+        timeout: 10000, // 10 second timeout
+      });
+
+      logger.info(`Webhook called successfully: ${method} ${url} (Status: ${response.status})`);
+      return response.data;
+    } catch (error) {
+      logger.error(`Webhook failed: ${error.message}`);
+      throw error;
+    }
   }
 
   async addToSequenceAction(action, record) {
-    // TODO: Add record to email sequence
-    logger.info(`Would add to sequence ${action.config.sequenceId}`);
+    const EmailSequence = require('../models/EmailSequence');
+    const { sequenceId, startDelay } = action.config;
+
+    try {
+      const sequence = await EmailSequence.findById(sequenceId);
+      if (!sequence) {
+        logger.warn(`Email sequence ${sequenceId} not found`);
+        return;
+      }
+
+      // Add record to sequence subscribers
+      if (!sequence.subscribers) sequence.subscribers = [];
+
+      const existingSubscriber = sequence.subscribers.find(
+        sub => sub.entityId.toString() === record._id.toString()
+      );
+
+      if (!existingSubscriber) {
+        sequence.subscribers.push({
+          entityType: record.constructor.modelName.toLowerCase(),
+          entityId: record._id,
+          email: record.email,
+          status: 'active',
+          currentStep: 0,
+          startedAt: new Date(Date.now() + (startDelay || 0) * 60 * 60 * 1000), // Delay in hours
+        });
+
+        await sequence.save();
+        logger.info(`Added record ${record._id} to email sequence ${sequenceId}`);
+      } else {
+        logger.info(`Record ${record._id} already in sequence ${sequenceId}`);
+      }
+    } catch (error) {
+      logger.error('Failed to add to sequence:', error);
+      throw error;
+    }
   }
 
   async createNoteAction(action, record) {
