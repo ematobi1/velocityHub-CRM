@@ -4,7 +4,18 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const swaggerUi = require('swagger-ui-express');
 const logger = require('./utils/logger');
+const { validateEnvironment } = require('./utils/validateEnv');
+const swaggerSpec = require('./config/swagger');
+
+// Validate environment variables before starting
+try {
+  validateEnvironment();
+} catch (error) {
+  logger.error('Failed to start server due to environment validation errors');
+  process.exit(1);
+}
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -58,6 +69,18 @@ app.use((req, res, next) => {
   next();
 });
 
+// API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'VelocityHub CRM API Documentation',
+}));
+
+// Swagger JSON endpoint
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
@@ -65,6 +88,33 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV
+  });
+});
+
+// API info endpoint
+app.get('/api', (req, res) => {
+  res.json({
+    name: 'VelocityHub CRM API',
+    version: '1.0.0',
+    description: 'AI-Powered Sales Intelligence Platform',
+    documentation: `${req.protocol}://${req.get('host')}/api-docs`,
+    endpoints: {
+      authentication: '/api/auth',
+      leads: '/api/leads',
+      deals: '/api/deals',
+      contacts: '/api/contacts',
+      companies: '/api/companies',
+      analytics: '/api/analytics',
+      emailSequences: '/api/email-sequences',
+      workflows: '/api/workflows',
+      aiFeatures: {
+        chatbot: '/api/chat',
+        aiAgents: '/api/ai-agents',
+        customerHealth: '/api/customer-health',
+        relationshipGraph: '/api/relationship-graph',
+        aiAnalytics: '/api/ai-analytics',
+      },
+    },
   });
 });
 

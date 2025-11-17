@@ -1,0 +1,14 @@
+node_modules
+build
+dist
+coverage
+*.log
+.env
+.env.local
+.DS_Store
+package-lock.json
+yarn.lock
+frontend/build
+backend/logs
+*.min.js
+*.min.css
