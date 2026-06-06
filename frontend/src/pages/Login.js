@@ -30,51 +30,44 @@ function Login() {
     }
   };
 
-  const fillDemoCredentials = () => {
-    setEmail('admin@velocityhub.com');
-    setPassword('admin123');
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
-        {/* Logo & Title */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-primary-600 mb-2">VelocityHub</h1>
           <p className="text-gray-600">AI-Powered Sales Intelligence Platform</p>
         </div>
 
-        {/* Login Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Welcome Back</h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email
               </label>
               <div className="relative">
                 <FiMail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="admin@velocityhub.com"
+                  placeholder="you@company.com"
                   required
                 />
               </div>
             </div>
 
-            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
               <div className="relative">
                 <FiLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
+                  id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -92,16 +85,6 @@ function Login() {
               </div>
             </div>
 
-            {/* Demo Credentials Button */}
-            <button
-              type="button"
-              onClick={fillDemoCredentials}
-              className="w-full text-sm text-primary-600 hover:text-primary-700 text-center py-2"
-            >
-              Use demo credentials
-            </button>
-
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -120,23 +103,10 @@ function Login() {
               )}
             </button>
           </form>
-
-          {/* Demo Info */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <p className="text-sm text-blue-900 font-medium mb-1">Demo Account</p>
-            <p className="text-xs text-blue-700">
-              Email: admin@velocityhub.com<br />
-              Password: admin123
-            </p>
-            <p className="text-xs text-blue-600 mt-2">
-              Access to 5000 AI-scored leads
-            </p>
-          </div>
         </div>
 
-        {/* Footer */}
         <p className="text-center text-sm text-gray-600 mt-6">
-          VelocityHub CRM &copy; 2024 - Build Velocity. Close Faster.
+          VelocityHub CRM &copy; 2025 - Build Velocity. Close Faster.
         </p>
       </div>
     </div>

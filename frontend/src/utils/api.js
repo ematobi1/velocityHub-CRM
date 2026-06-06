@@ -146,4 +146,29 @@ export const emailSequencesAPI = {
   getAnalytics: (id) => api.get(`/email-sequences/${id}/analytics`)
 };
 
+// Tickets API
+export const ticketsAPI = {
+  getAll: (params) => api.get('/tickets', { params }),
+  getById: (id) => api.get(`/tickets/${id}`),
+  getStats: () => api.get('/tickets/stats'),
+  create: (data) => api.post('/tickets', data),
+  update: (id, data) => api.patch(`/tickets/${id}`, data),
+  addMessage: (id, body) => api.post(`/tickets/${id}/messages`, { body }),
+  delete: (id) => api.delete(`/tickets/${id}`)
+};
+
+// Revenue Intelligence API
+export const revenueIntelligenceAPI = {
+  getOverview: () => api.get('/revenue-intelligence/overview'),
+  getRepPerformance: () => api.get('/revenue-intelligence/rep-performance')
+};
+
+// WhatsApp API
+export const whatsappAPI = {
+  send: (data) => api.post('/whatsapp/send', data),
+  getThread: (phone) => api.get(`/whatsapp/thread/${phone}`),
+  getThreads: () => api.get('/whatsapp/threads'),
+  getTemplates: () => api.get('/whatsapp/templates')
+};
+
 export default api;

@@ -34,9 +34,6 @@ class ConversationIntelligenceService {
       if (!conversationType) {
         throw new Error('conversationType is required');
       }
-      if (!conversationId) {
-        throw new Error('conversationId is required');
-      }
       if (!transcript || transcript.trim().length === 0) {
         throw new Error('transcript is required and cannot be empty');
       }

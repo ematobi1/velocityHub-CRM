@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { FiHome, FiUsers, FiLogOut, FiMenu, FiX, FiTrello, FiBriefcase, FiHeadphones, FiActivity, FiZap, FiLinkedin, FiDatabase, FiCpu, FiHeart, FiGlobe } from 'react-icons/fi';
+import { FiHome, FiUsers, FiLogOut, FiMenu, FiX, FiTrello, FiBriefcase, FiHeadphones, FiActivity, FiZap, FiLinkedin, FiDatabase, FiCpu, FiHeart, FiGlobe, FiTrendingUp, FiMessageCircle, FiSettings } from 'react-icons/fi';
 import ChatWidget from './ChatWidget';
 import NotificationCenter from './NotificationCenter';
 import websocketService from '../services/websocket';
@@ -43,6 +43,9 @@ function Layout() {
     { name: 'Customer Health', path: '/customer-health', icon: FiHeart },
     { name: 'Relationship Map', path: '/relationship-map', icon: FiGlobe },
     { name: 'Customer Service', path: '/customer-service', icon: FiHeadphones },
+    { name: 'Revenue Intel', path: '/revenue-intelligence', icon: FiTrendingUp },
+    { name: 'WhatsApp', path: '/whatsapp', icon: FiMessageCircle },
+    { name: 'Settings', path: '/settings', icon: FiSettings },
   ];
 
   const isActive = (path) => {

@@ -1,315 +1,360 @@
-import React, { useState } from 'react';
-import { FiMail, FiPhone, FiClock, FiMessageSquare, FiHelpCircle, FiCheckCircle, FiSend } from 'react-icons/fi';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ticketsAPI } from '../utils/api';
+import { useAuth } from '../contexts/AuthContext';
+import { FiPlus, FiMessageSquare, FiAlertCircle, FiCheckCircle, FiClock, FiSend, FiRefreshCw } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
-function CustomerService() {
-  const [contactForm, setContactForm] = useState({
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-    priority: 'medium'
-  });
+const PRIORITY_STYLES = {
+  urgent: 'bg-red-100 text-red-700 border-red-200',
+  high: 'bg-orange-100 text-orange-700 border-orange-200',
+  medium: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+  low: 'bg-gray-100 text-gray-600 border-gray-200'
+};
 
-  const handleSubmit = (e) => {
+const STATUS_STYLES = {
+  open: 'bg-blue-100 text-blue-700',
+  in_progress: 'bg-purple-100 text-purple-700',
+  waiting: 'bg-yellow-100 text-yellow-700',
+  resolved: 'bg-green-100 text-green-700',
+  closed: 'bg-gray-100 text-gray-600'
+};
+
+const STATUS_ICONS = {
+  open: FiAlertCircle,
+  in_progress: FiClock,
+  waiting: FiClock,
+  resolved: FiCheckCircle,
+  closed: FiCheckCircle
+};
+
+function StatCard({ icon: Icon, label, value, color }) {
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-5">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm text-gray-500">{label}</span>
+        <Icon size={16} className={color} />
+      </div>
+      <p className="text-2xl font-bold text-gray-900">{value}</p>
+    </div>
+  );
+}
+
+function NewTicketModal({ onClose, onCreated }) {
+  const [form, setForm] = useState({ subject: '', description: '', priority: 'medium', category: 'general' });
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e) => {
     e.preventDefault();
-    toast.success('Support ticket submitted successfully! Our team will contact you within 24 hours.');
-    setContactForm({
-      name: '',
-      email: '',
-      subject: '',
-      message: '',
-      priority: 'medium'
-    });
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setContactForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const supportChannels = [
-    {
-      icon: FiMail,
-      title: 'Email Support',
-      description: 'Send us an email and we\'ll respond within 24 hours',
-      contact: 'support@velocityhub.com',
-      availability: '24/7',
-      color: 'bg-blue-100 text-blue-600'
-    },
-    {
-      icon: FiPhone,
-      title: 'Phone Support',
-      description: 'Speak with our support team directly',
-      contact: '+1 (555) 123-4567',
-      availability: 'Mon-Fri, 9AM-6PM EST',
-      color: 'bg-green-100 text-green-600'
-    },
-    {
-      icon: FiMessageSquare,
-      title: 'Live Chat',
-      description: 'Get instant answers to your questions',
-      contact: 'Available in app',
-      availability: 'Mon-Fri, 9AM-9PM EST',
-      color: 'bg-purple-100 text-purple-600'
-    },
-    {
-      icon: FiHelpCircle,
-      title: 'Help Center',
-      description: 'Browse our knowledge base and FAQs',
-      contact: 'help.velocityhub.com',
-      availability: '24/7',
-      color: 'bg-yellow-100 text-yellow-600'
+    setLoading(true);
+    try {
+      const res = await ticketsAPI.create(form);
+      toast.success(`Ticket ${res.ticket.ticketNumber} created`);
+      onCreated(res.ticket);
+      onClose();
+    } catch (err) {
+      toast.error(err?.error?.message || 'Failed to create ticket');
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const faqs = [
-    {
-      question: 'How do I add new leads to my CRM?',
-      answer: 'Navigate to the Leads page and click the "New Lead" button. Fill in the required information including name, email, and company details. You can also import leads in bulk via CSV files.'
-    },
-    {
-      question: 'Can I integrate VelocityHub with other tools?',
-      answer: 'Yes! VelocityHub supports integrations with popular tools like Gmail, Outlook, Slack, and Zapier. You can manage integrations from the Settings > Integrations page.'
-    },
-    {
-      question: 'How does the AI-powered lead scoring work?',
-      answer: 'Our AI analyzes multiple factors including engagement history, company size, industry, and interaction patterns to predict the likelihood of conversion. The score is updated in real-time as new data comes in.'
-    },
-    {
-      question: 'What are the different subscription tiers?',
-      answer: 'We offer Free, Pro, and Enterprise tiers. The Free tier includes up to 100 contacts, Pro includes 1,000 contacts with advanced features, and Enterprise offers unlimited contacts with custom solutions.'
-    },
-    {
-      question: 'How secure is my data?',
-      answer: 'We take security seriously. All data is encrypted in transit and at rest using AES-256 encryption. We\'re SOC 2 compliant and regularly undergo third-party security audits.'
-    },
-    {
-      question: 'Can I export my data?',
-      answer: 'Absolutely! You can export your leads, deals, and contacts at any time in CSV or JSON format. Go to Settings > Data Export to download your complete database.'
-    }
-  ];
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Hero Header with Image */}
-      <div className="relative h-80 overflow-hidden rounded-lg">
-        <img
-          src="/assets/images/customer-service.jpg"
-          alt="Customer Service"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-
-        {/* Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-gray-900/90 via-gray-900/70 to-transparent"></div>
-
-        {/* Content */}
-        <div className="relative h-full flex items-center px-8">
-          <div className="max-w-2xl">
-            <h1 className="text-5xl font-bold text-white drop-shadow-lg mb-4">
-              Customer Service & Support
-            </h1>
-            <p className="text-xl text-gray-200 drop-shadow-md mb-6">
-              We're here to help! Get assistance from our dedicated support team available 24/7
-            </p>
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <FiClock className="text-green-400" size={20} />
-                <span className="text-white font-medium">24/7 Availability</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <FiCheckCircle className="text-green-400" size={20} />
-                <span className="text-white font-medium">Expert Support Team</span>
-              </div>
-            </div>
-          </div>
+    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-bold text-gray-900">New Support Ticket</h3>
         </div>
-      </div>
-
-      <div className="px-6 space-y-6">
-        {/* Support Channels */}
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Contact Us</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {supportChannels.map((channel, index) => {
-              const Icon = channel.icon;
-              return (
-                <div
-                  key={index}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
-                >
-                  <div className={`inline-flex p-3 rounded-lg ${channel.color} mb-4`}>
-                    <Icon size={24} />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {channel.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    {channel.description}
-                  </p>
-                  <p className="text-sm font-medium text-primary-600 mb-2">
-                    {channel.contact}
-                  </p>
-                  <div className="flex items-center text-xs text-gray-500">
-                    <FiClock size={14} className="mr-1" />
-                    {channel.availability}
-                  </div>
-                </div>
-              );
-            })}
+        <form onSubmit={submit} className="p-6 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Subject</label>
+            <input
+              value={form.subject}
+              onChange={e => setForm(p => ({ ...p, subject: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder="Brief summary of the issue"
+              required
+            />
           </div>
-        </div>
-
-        {/* Contact Form and FAQs Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Contact Form */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Submit a Support Ticket</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Your Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={contactForm.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="John Doe"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={contactForm.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="john@example.com"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Priority <span className="text-red-500">*</span>
-                </label>
-                <select
-                  name="priority"
-                  value={contactForm.priority}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="low">Low - General Question</option>
-                  <option value="medium">Medium - Need Assistance</option>
-                  <option value="high">High - System Issue</option>
-                  <option value="urgent">Urgent - Critical Problem</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Subject <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="subject"
-                  value={contactForm.subject}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Brief description of your issue"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Message <span className="text-red-500">*</span>
-                </label>
-                <textarea
-                  name="message"
-                  value={contactForm.message}
-                  onChange={handleChange}
-                  required
-                  rows="4"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Please describe your issue in detail..."
-                ></textarea>
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors font-semibold flex items-center justify-center"
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Priority</label>
+              <select
+                value={form.priority}
+                onChange={e => setForm(p => ({ ...p, priority: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
               >
-                <FiSend className="mr-2" />
-                Submit Ticket
-              </button>
-            </form>
-          </div>
-
-          {/* FAQ Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Frequently Asked Questions</h2>
-            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
-              {faqs.map((faq, index) => (
-                <div key={index} className="border-b border-gray-100 pb-4 last:border-b-0">
-                  <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-start">
-                    <FiHelpCircle className="text-primary-600 mr-2 flex-shrink-0 mt-0.5" size={16} />
-                    {faq.question}
-                  </h3>
-                  <p className="text-sm text-gray-600 ml-6">
-                    {faq.answer}
-                  </p>
-                </div>
-              ))}
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
             </div>
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
-                Can't find what you're looking for?{' '}
-                <button className="text-primary-600 hover:text-primary-700 font-medium">
-                  Contact our support team
-                </button>
-              </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <select
+                value={form.category}
+                onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="general">General</option>
+                <option value="billing">Billing</option>
+                <option value="technical">Technical</option>
+                <option value="feature_request">Feature Request</option>
+                <option value="bug">Bug Report</option>
+              </select>
             </div>
           </div>
-        </div>
-
-        {/* Response Time Stats */}
-        <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-lg p-6 text-white">
-          <h2 className="text-2xl font-bold mb-6">Our Service Commitment</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-4xl font-bold mb-2">
-                &lt;2h
-              </div>
-              <p className="text-primary-100">Average Response Time</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold mb-2">98%</div>
-              <p className="text-primary-100">Customer Satisfaction</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold mb-2">24/7</div>
-              <p className="text-primary-100">Support Availability</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold mb-2">10k+</div>
-              <p className="text-primary-100">Happy Customers</p>
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea
+              value={form.description}
+              onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              placeholder="Describe the issue in detail…"
+              required
+            />
           </div>
-        </div>
+          <div className="flex gap-3 justify-end pt-2">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Cancel</button>
+            <button type="submit" disabled={loading} className="px-5 py-2 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:bg-gray-400">
+              {loading ? 'Submitting…' : 'Submit Ticket'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
 }
 
-export default CustomerService;
+function TicketDetail({ ticket, onUpdate }) {
+  const { user } = useAuth();
+  const [reply, setReply] = useState('');
+  const [sending, setSending] = useState(false);
+  const isStaff = user?.role === 'admin' || user?.role === 'manager';
+
+  const sendReply = async (e) => {
+    e.preventDefault();
+    if (!reply.trim()) return;
+    setSending(true);
+    try {
+      await ticketsAPI.addMessage(ticket._id, reply.trim());
+      toast.success('Reply sent');
+      setReply('');
+      const updated = await ticketsAPI.getById(ticket._id);
+      onUpdate(updated.ticket);
+    } catch {
+      toast.error('Failed to send reply');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const updateStatus = async (status) => {
+    try {
+      const res = await ticketsAPI.update(ticket._id, { status });
+      onUpdate(res.ticket);
+      toast.success(`Status updated to ${status}`);
+    } catch {
+      toast.error('Failed to update status');
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="p-4 border-b border-gray-200 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs text-gray-400 font-mono">{ticket.ticketNumber}</p>
+          <h3 className="font-semibold text-gray-900 mt-0.5">{ticket.subject}</h3>
+          <div className="flex gap-2 mt-2">
+            <span className={`text-xs px-2 py-0.5 rounded-full border ${PRIORITY_STYLES[ticket.priority]}`}>{ticket.priority}</span>
+            <span className={`text-xs px-2 py-0.5 rounded-full ${STATUS_STYLES[ticket.status]}`}>{ticket.status.replace('_', ' ')}</span>
+            <span className="text-xs text-gray-400">{ticket.category}</span>
+          </div>
+        </div>
+        {isStaff && (
+          <select
+            value={ticket.status}
+            onChange={e => updateStatus(e.target.value)}
+            className="text-xs border border-gray-300 rounded-lg px-2 py-1 focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="open">Open</option>
+            <option value="in_progress">In Progress</option>
+            <option value="waiting">Waiting</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </select>
+        )}
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+        {ticket.messages?.map((msg, i) => (
+          <div key={i} className={`flex ${msg.sender === 'agent' ? 'justify-start' : 'justify-end'}`}>
+            <div className={`max-w-sm rounded-2xl px-4 py-3 text-sm ${msg.sender === 'agent' ? 'bg-primary-50 text-gray-800 rounded-bl-sm' : 'bg-gray-100 text-gray-700 rounded-br-sm'}`}>
+              <p className="font-medium text-xs text-gray-400 mb-1">{msg.senderName || (msg.sender === 'agent' ? 'Support Agent' : 'You')}</p>
+              <p className="whitespace-pre-wrap">{msg.body}</p>
+              <p className="text-xs text-gray-400 mt-1">{new Date(msg.createdAt).toLocaleString()}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {ticket.status !== 'closed' && (
+        <form onSubmit={sendReply} className="p-4 border-t border-gray-200 flex gap-2">
+          <textarea
+            value={reply}
+            onChange={e => setReply(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply(e); } }}
+            rows={2}
+            placeholder="Type a reply…"
+            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-xl resize-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+          <button
+            type="submit"
+            disabled={sending || !reply.trim()}
+            className="p-3 bg-primary-600 text-white rounded-xl hover:bg-primary-700 disabled:bg-gray-300 flex-shrink-0"
+          >
+            {sending ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" /> : <FiSend size={16} />}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+export default function CustomerService() {
+  const [tickets, setTickets] = useState([]);
+  const [stats, setStats] = useState({});
+  const [selected, setSelected] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showNew, setShowNew] = useState(false);
+  const [statusFilter, setStatusFilter] = useState('all');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = statusFilter !== 'all' ? { status: statusFilter } : {};
+      const [ticketRes, statsRes] = await Promise.all([
+        ticketsAPI.getAll(params),
+        ticketsAPI.getStats()
+      ]);
+      setTickets(ticketRes.tickets || []);
+      setStats(statsRes);
+    } catch {
+      toast.error('Failed to load tickets');
+    } finally {
+      setLoading(false);
+    }
+  }, [statusFilter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleSelect = async (ticket) => {
+    try {
+      const res = await ticketsAPI.getById(ticket._id);
+      setSelected(res.ticket);
+    } catch {
+      setSelected(ticket);
+    }
+  };
+
+  const handleUpdate = (updated) => {
+    setSelected(updated);
+    setTickets(prev => prev.map(t => t._id === updated._id ? updated : t));
+  };
+
+  return (
+    <div className="flex h-full" style={{ height: 'calc(100vh - 4rem)' }}>
+      {/* Ticket list */}
+      <div className="w-80 flex-shrink-0 border-r border-gray-200 flex flex-col bg-white">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-semibold text-gray-900">Support Tickets</h2>
+            <div className="flex gap-2">
+              <button onClick={load} className="text-gray-400 hover:text-gray-600"><FiRefreshCw size={14} /></button>
+              <button onClick={() => setShowNew(true)} className="flex items-center gap-1 text-xs bg-primary-600 text-white px-3 py-1.5 rounded-lg hover:bg-primary-700">
+                <FiPlus size={12} /> New
+              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            <StatCard icon={FiAlertCircle} label="Open" value={stats.open || 0} color="text-blue-500" />
+            <StatCard icon={FiCheckCircle} label="Resolved" value={stats.resolved || 0} color="text-green-500" />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
+            className="w-full text-xs border border-gray-300 rounded-lg px-2 py-1.5"
+          >
+            <option value="all">All tickets</option>
+            <option value="open">Open</option>
+            <option value="in_progress">In Progress</option>
+            <option value="waiting">Waiting</option>
+            <option value="resolved">Resolved</option>
+            <option value="closed">Closed</option>
+          </select>
+        </div>
+
+        <div className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center justify-center h-20">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600" />
+            </div>
+          ) : tickets.length === 0 ? (
+            <div className="text-center py-12">
+              <FiMessageSquare size={24} className="text-gray-300 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">No tickets</p>
+            </div>
+          ) : (
+            tickets.map(ticket => {
+              const StatusIcon = STATUS_ICONS[ticket.status] || FiAlertCircle;
+              return (
+                <button
+                  key={ticket._id}
+                  type="button"
+                  onClick={() => handleSelect(ticket)}
+                  className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${selected?._id === ticket._id ? 'bg-primary-50' : ''}`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-mono text-gray-400">{ticket.ticketNumber}</span>
+                    <StatusIcon size={13} className={ticket.status === 'resolved' ? 'text-green-500' : 'text-gray-400'} />
+                  </div>
+                  <p className="text-sm font-medium text-gray-900 truncate">{ticket.subject}</p>
+                  <div className="flex gap-1.5 mt-1.5">
+                    <span className={`text-xs px-1.5 py-0.5 rounded border ${PRIORITY_STYLES[ticket.priority]}`}>{ticket.priority}</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${STATUS_STYLES[ticket.status]}`}>{ticket.status.replace('_', ' ')}</span>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {/* Ticket detail */}
+      <div className="flex-1 bg-gray-50">
+        {selected ? (
+          <TicketDetail ticket={selected} onUpdate={handleUpdate} />
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+              <FiMessageSquare size={28} className="text-gray-400" />
+            </div>
+            <p className="text-gray-600 font-medium">Select a ticket</p>
+            <p className="text-sm text-gray-400 mt-1">or create a new one to get started</p>
+            <button onClick={() => setShowNew(true)} className="mt-4 flex items-center gap-2 bg-primary-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-primary-700">
+              <FiPlus size={14} /> New Ticket
+            </button>
+          </div>
+        )}
+      </div>
+
+      {showNew && (
+        <NewTicketModal
+          onClose={() => setShowNew(false)}
+          onCreated={t => { setTickets(prev => [t, ...prev]); setSelected(t); }}
+        />
+      )}
+    </div>
+  );
+}

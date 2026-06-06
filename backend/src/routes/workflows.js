@@ -3,13 +3,14 @@ const router = express.Router();
 const Workflow = require('../models/Workflow');
 const workflowEngine = require('../services/workflowEngine');
 const logger = require('../utils/logger');
+const { auth } = require('../middleware/auth');
 
 /**
  * @route   GET /api/workflows
  * @desc    Get all workflows
  * @access  Private
  */
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
     const { entity, status, search } = req.query;
 
@@ -40,7 +41,7 @@ router.get('/', async (req, res) => {
  * @desc    Get workflow analytics overview
  * @access  Private (Admin/Manager)
  */
-router.get('/analytics/overview', async (req, res) => {
+router.get('/analytics/overview', auth, async (req, res) => {
   try {
     // Check permissions
     if (req.user.role !== 'admin' && req.user.role !== 'manager') {
@@ -105,7 +106,7 @@ router.get('/analytics/overview', async (req, res) => {
  * @desc    Create workflow from template
  * @access  Private (Admin/Manager)
  */
-router.post('/templates/:template', async (req, res) => {
+router.post('/templates/:template', auth, async (req, res) => {
   try {
     // Check permissions
     if (req.user.role !== 'admin' && req.user.role !== 'manager') {
@@ -272,7 +273,7 @@ router.post('/templates/:template', async (req, res) => {
  * @desc    Manually trigger workflows (for testing/integration)
  * @access  Private
  */
-router.post('/trigger/:triggerType', async (req, res) => {
+router.post('/trigger/:triggerType', auth, async (req, res) => {
   try {
     const { entity, recordId, changeData } = req.body;
 
@@ -299,7 +300,7 @@ router.post('/trigger/:triggerType', async (req, res) => {
  * @desc    Get workflow by ID
  * @access  Private
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', auth, async (req, res) => {
   try {
     const workflow = await Workflow.findById(req.params.id)
       .populate('createdBy', 'firstName lastName email');
@@ -320,7 +321,7 @@ router.get('/:id', async (req, res) => {
  * @desc    Create a new workflow
  * @access  Private (Admin/Manager)
  */
-router.post('/', async (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
     // Check permissions
     if (req.user.role !== 'admin' && req.user.role !== 'manager') {
@@ -347,7 +348,7 @@ router.post('/', async (req, res) => {
  * @desc    Update a workflow
  * @access  Private (Admin/Manager)
  */
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   try {
     // Check permissions
     if (req.user.role !== 'admin' && req.user.role !== 'manager') {
@@ -381,7 +382,7 @@ router.put('/:id', async (req, res) => {
  * @desc    Delete a workflow
  * @access  Private (Admin)
  */
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   try {
     // Check permissions
     if (req.user.role !== 'admin') {
@@ -408,7 +409,7 @@ router.delete('/:id', async (req, res) => {
  * @desc    Activate a workflow
  * @access  Private (Admin/Manager)
  */
-router.patch('/:id/activate', async (req, res) => {
+router.patch('/:id/activate', auth, async (req, res) => {
   try {
     // Check permissions
     if (req.user.role !== 'admin' && req.user.role !== 'manager') {
@@ -436,7 +437,7 @@ router.patch('/:id/activate', async (req, res) => {
  * @desc    Pause a workflow
  * @access  Private (Admin/Manager)
  */
-router.patch('/:id/pause', async (req, res) => {
+router.patch('/:id/pause', auth, async (req, res) => {
   try {
     // Check permissions
     if (req.user.role !== 'admin' && req.user.role !== 'manager') {
@@ -464,7 +465,7 @@ router.patch('/:id/pause', async (req, res) => {
  * @desc    Archive a workflow
  * @access  Private (Admin/Manager)
  */
-router.patch('/:id/archive', async (req, res) => {
+router.patch('/:id/archive', auth, async (req, res) => {
   try {
     // Check permissions
     if (req.user.role !== 'admin' && req.user.role !== 'manager') {
@@ -492,7 +493,7 @@ router.patch('/:id/archive', async (req, res) => {
  * @desc    Test a workflow on a specific record
  * @access  Private (Admin/Manager)
  */
-router.post('/:id/test', async (req, res) => {
+router.post('/:id/test', auth, async (req, res) => {
   try {
     // Check permissions
     if (req.user.role !== 'admin' && req.user.role !== 'manager') {
@@ -526,7 +527,7 @@ router.post('/:id/test', async (req, res) => {
  * @desc    Get workflow execution history
  * @access  Private
  */
-router.get('/:id/executions', async (req, res) => {
+router.get('/:id/executions', auth, async (req, res) => {
   try {
     const workflow = await Workflow.findById(req.params.id);
 

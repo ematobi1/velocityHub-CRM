@@ -33,6 +33,11 @@ const aiAnalyticsRoutes = require('./routes/aiAnalytics');
 // Notifications
 const notificationsRoutes = require('./routes/notifications');
 
+// Differentiated features
+const ticketsRoutes = require('./routes/tickets');
+const revenueIntelligenceRoutes = require('./routes/revenueIntelligence');
+const whatsappRoutes = require('./routes/whatsapp');
+
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5001;
@@ -98,6 +103,11 @@ app.use('/api/ai-analytics', aiAnalyticsRoutes);
 
 // Notifications
 app.use('/api/notifications', notificationsRoutes);
+
+// Differentiated features
+app.use('/api/tickets', ticketsRoutes);
+app.use('/api/revenue-intelligence', revenueIntelligenceRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
 
 // 404 handler
 app.use((req, res) => {

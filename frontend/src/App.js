@@ -15,6 +15,9 @@ import LeadEnrichment from './pages/LeadEnrichment';
 import AIAgents from './pages/AIAgents';
 import CustomerHealth from './pages/CustomerHealth';
 import RelationshipMap from './pages/RelationshipMap';
+import RevenueIntelligence from './pages/RevenueIntelligence';
+import WhatsApp from './pages/WhatsApp';
+import Settings from './pages/Settings';
 import Layout from './components/Layout';
 
 function PrivateRoute({ children }) {
@@ -57,6 +60,9 @@ function App() {
           <Route path="customer-health" element={<CustomerHealth />} />
           <Route path="relationship-map" element={<RelationshipMap />} />
           <Route path="customer-service" element={<CustomerService />} />
+          <Route path="revenue-intelligence" element={<RevenueIntelligence />} />
+          <Route path="whatsapp" element={<WhatsApp />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>

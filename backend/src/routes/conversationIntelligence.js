@@ -4,39 +4,40 @@ const conversationIntelligenceService = require('../ai/conversationIntelligence'
 const ConversationIntelligence = require('../models/ConversationIntelligence');
 const VoiceCall = require('../models/VoiceCall');
 const logger = require('../utils/logger');
+const { auth } = require('../middleware/auth');
 
 /**
  * @route   POST /api/conversation-intelligence/analyze
  * @desc    Analyze a conversation and extract intelligence
  * @access  Private
  */
-router.post('/analyze', async (req, res) => {
+router.post('/analyze', auth, async (req, res) => {
   try {
     const {
       conversationType,
       conversationId,
       transcript,
-      lead,
-      contact,
-      deal,
+      leadId,
+      contactId,
+      dealId,
       conversationDate,
       duration
     } = req.body;
 
-    if (!conversationType || !conversationId || !transcript) {
+    if (!conversationType || !transcript) {
       return res.status(400).json({
-        error: 'conversationType, conversationId, and transcript are required'
+        error: 'conversationType and transcript are required'
       });
     }
 
     const intelligence = await conversationIntelligenceService.analyzeConversation({
       conversationType,
-      conversationId,
+      conversationId: conversationId || new require('mongodb').ObjectId(),
       transcript,
       user: req.user.id,
-      lead,
-      contact,
-      deal,
+      lead: leadId,
+      contact: contactId,
+      deal: dealId,
       conversationDate: conversationDate || new Date(),
       duration
     });
@@ -53,7 +54,7 @@ router.post('/analyze', async (req, res) => {
  * @desc    Analyze a specific voice call
  * @access  Private
  */
-router.post('/analyze-call/:callId', async (req, res) => {
+router.post('/analyze-call/:callId', auth, async (req, res) => {
   try {
     const call = await VoiceCall.findById(req.params.callId);
 
@@ -96,7 +97,7 @@ router.post('/analyze-call/:callId', async (req, res) => {
  * @desc    Get conversation intelligence by ID
  * @access  Private
  */
-router.get('/:id', async (req, res) => {
+router.get('/:id', auth, async (req, res) => {
   try {
     const intelligence = await ConversationIntelligence.findById(req.params.id)
       .populate('user', 'firstName lastName email')
@@ -120,7 +121,7 @@ router.get('/:id', async (req, res) => {
  * @desc    Get all conversation intelligence for a lead
  * @access  Private
  */
-router.get('/lead/:leadId', async (req, res) => {
+router.get('/lead/:leadId', auth, async (req, res) => {
   try {
     const intelligence = await conversationIntelligenceService.getConversationHistory({
       lead: req.params.leadId,
@@ -139,7 +140,7 @@ router.get('/lead/:leadId', async (req, res) => {
  * @desc    Get all conversation intelligence for a contact
  * @access  Private
  */
-router.get('/contact/:contactId', async (req, res) => {
+router.get('/contact/:contactId', auth, async (req, res) => {
   try {
     const intelligence = await conversationIntelligenceService.getConversationHistory({
       contact: req.params.contactId,
@@ -158,7 +159,7 @@ router.get('/contact/:contactId', async (req, res) => {
  * @desc    Get all conversation intelligence for a deal
  * @access  Private
  */
-router.get('/deal/:dealId', async (req, res) => {
+router.get('/deal/:dealId', auth, async (req, res) => {
   try {
     const intelligence = await conversationIntelligenceService.getConversationHistory({
       deal: req.params.dealId,
@@ -177,7 +178,7 @@ router.get('/deal/:dealId', async (req, res) => {
  * @desc    Get coaching insights for the current user
  * @access  Private
  */
-router.get('/user/coaching-insights', async (req, res) => {
+router.get('/user/coaching-insights', auth, async (req, res) => {
   try {
     const days = parseInt(req.query.days) || 30;
     const insights = await conversationIntelligenceService.getUserCoachingInsights(
@@ -197,7 +198,7 @@ router.get('/user/coaching-insights', async (req, res) => {
  * @desc    Get team-wide conversation insights (Admin/Manager only)
  * @access  Private (Admin/Manager)
  */
-router.get('/team/insights', async (req, res) => {
+router.get('/team/insights', auth, async (req, res) => {
   try {
     // Check if user is admin or manager
     if (req.user.role !== 'admin' && req.user.role !== 'manager') {
@@ -305,7 +306,7 @@ router.get('/team/insights', async (req, res) => {
  * @desc    Get sentiment trends over time
  * @access  Private
  */
-router.get('/analytics/sentiment-trends', async (req, res) => {
+router.get('/analytics/sentiment-trends', auth, async (req, res) => {
   try {
     const days = parseInt(req.query.days) || 30;
     const startDate = new Date();
@@ -354,7 +355,7 @@ router.get('/analytics/sentiment-trends', async (req, res) => {
  * @desc    Update action item status
  * @access  Private
  */
-router.patch('/:id/action-items/:actionId', async (req, res) => {
+router.patch('/:id/action-items/:actionId', auth, async (req, res) => {
   try {
     const { completed, assignedTo, dueDate, priority } = req.body;
 
@@ -389,7 +390,7 @@ router.patch('/:id/action-items/:actionId', async (req, res) => {
  * @desc    Search conversations by keywords, sentiment, or topics
  * @access  Private
  */
-router.get('/search', async (req, res) => {
+router.get('/search', auth, async (req, res) => {
   try {
     const { keyword, sentiment, topic, startDate, endDate } = req.query;
 

@@ -90,3 +90,6 @@ frontend/public/uploads/
 *.key
 *.crt
 .eslintcache
+
+# Local Netlify folder
+.netlify
