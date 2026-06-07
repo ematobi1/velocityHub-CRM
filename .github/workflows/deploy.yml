@@ -47,16 +47,15 @@ jobs:
     name: Deploy Backend to Railway
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      env: 
-        FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-        
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
+     - name: Checkout
+      uses: actions/checkout@v4
 
-      - name: Deploy to Railway
-        run: railway up --environment production --detach
-        working-directory: backend
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-          RAILWAY_PROJECT_ID: d9b0daae-f5fc-47fd-bb92-f6bc171086d1
+    - name: Install Railway CLI
+      run: npm install -g @railway/cli
+
+    - name: Deploy to Railway
+      working-directory: backend
+      run: railway up --environment production --detach
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        RAILWAY_PROJECT_ID: d9b0daae-f5fc-47fd-bb92-f6bc171086d1
