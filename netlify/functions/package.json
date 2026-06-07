@@ -2,6 +2,6 @@
   "name": "velocityhub-functions",
   "version": "1.0.0",
   "dependencies": {
-    "serverless-http": "^3.2.2"
+    "serverless-http": "^3.2.0"
   }
 }
