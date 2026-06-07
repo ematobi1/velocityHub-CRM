@@ -3,7 +3,7 @@ const { app, connectDB } = require('./app');
 const websocketService = require('./services/websocket');
 const logger = require('./utils/logger');
 
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 
 connectDB()

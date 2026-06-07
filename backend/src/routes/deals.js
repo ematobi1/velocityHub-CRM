@@ -2,6 +2,7 @@ const express = require('express');
 const Deal = require('../models/Deal');
 const Lead = require('../models/Lead');
 const { auth, authorize } = require('../middleware/auth');
+const logger = require('../utils/logger');
 
 const router = express.Router();
 

@@ -27,8 +27,8 @@ jobs:
         run: npm run build
         working-directory: frontend
         env:
-          REACT_APP_API_URL: https://velocityhub-api.onrender.com/api
-          REACT_APP_SOCKET_URL: https://velocityhub-api.onrender.com
+          REACT_APP_API_URL: https://velocityhub-api.up.railway.app/api
+          REACT_APP_SOCKET_URL: https://velocityhub-api.up.railway.app
           CI: false
 
       - name: Deploy to Netlify
@@ -38,14 +38,7 @@ jobs:
           production-branch: master
           production-deploy: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          deploy-message: "Deploy from GitHub Actions - ${{ github.sha }}"
+          deploy-message: "Deploy ${{ github.sha }}"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ea0d3858-ade6-4c96-8c48-f7e690c2926b
-
-  deploy-backend:
-    name: Deploy Backend to Render
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger Render deploy hook
-        run: curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"

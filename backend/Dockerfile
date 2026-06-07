@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
@@ -8,8 +8,8 @@ RUN npm ci --only=production
 COPY src ./src
 
 ENV NODE_ENV=production
-ENV PORT=8080
+ENV PORT=5000
 
-EXPOSE 8080
+EXPOSE 5000
 
 CMD ["node", "src/server.js"]
