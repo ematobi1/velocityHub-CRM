@@ -34,6 +34,7 @@ app.use(cors({
   origin: [
     process.env.FRONTEND_URL || 'http://localhost:3000',
     'https://velocityhub-crm.netlify.app',
+    'https://velocity-hubcrm.netlify.app',
   ],
   credentials: true,
 }));
