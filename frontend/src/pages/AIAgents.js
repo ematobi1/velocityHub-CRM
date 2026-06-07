@@ -7,6 +7,7 @@ import {
   Select, MenuItem, FormControl, Alert, Tooltip,
   List, ListItem, ListItemText, ListItemSecondaryAction
 } from '@mui/material';
+import toast from 'react-hot-toast';
 import {
   FiActivity, FiPlay, FiPause, FiTrash2, FiSettings,
   FiTrendingUp, FiCheckCircle, FiXCircle,
@@ -165,7 +166,7 @@ const AIAgents = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert('Agent cycle started! Check back in a few moments for results.');
+      toast.success('Agent cycle started! Check back in a few moments for results.');
     } catch (error) {
       console.error('Error running cycle:', error);
     }

@@ -137,6 +137,11 @@ function BillingTab() {
             <button
               className={`mt-4 w-full py-2 text-sm rounded-lg ${tier === plan.tier ? 'bg-gray-100 text-gray-500 cursor-default' : 'bg-primary-600 text-white hover:bg-primary-700'}`}
               disabled={tier === plan.tier}
+              onClick={() => {
+                if (tier !== plan.tier) {
+                  toast.success(`Upgrade request sent! Our sales team will contact you within 24 hours about the ${plan.name} plan.`);
+                }
+              }}
             >
               {tier === plan.tier ? 'Current plan' : `Upgrade to ${plan.name}`}
             </button>

@@ -63,6 +63,17 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
+// Get company stats overview
+router.get('/stats/overview', auth, async (req, res) => {
+  try {
+    const query = req.user.role === 'sales_rep' ? { owner: req.user._id, isArchived: false } : { isArchived: false };
+    const total = await Company.countDocuments(query);
+    res.json({ total });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get single company
 router.get('/:id', auth, async (req, res) => {
   try {

@@ -392,10 +392,17 @@ const RelationshipMap = () => {
   };
 
   const renderGraphVisualization = () => {
-    if (!selectedGraph || !selectedGraph.nodes || selectedGraph.nodes.length === 0) {
+    if (!selectedGraph) {
       return (
         <Alert severity="info">
-          No relationship graph available. This is a mock visualization. Create a graph to see actual data.
+          No relationship graph selected. Create a graph using the button above to start mapping connections.
+        </Alert>
+      );
+    }
+    if (!selectedGraph.nodes || selectedGraph.nodes.length === 0) {
+      return (
+        <Alert severity="info">
+          No nodes in this graph yet. Use "Add Node" or "Import Contacts" above to start building the network.
         </Alert>
       );
     }
