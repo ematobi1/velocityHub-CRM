@@ -105,8 +105,10 @@ const AIAgents = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      toast.success(`Agent ${status === 'active' ? 'activated' : 'paused'}.`);
       fetchData();
     } catch (error) {
+      toast.error('Failed to update agent status.');
       console.error('Error updating status:', error);
     }
   };
@@ -120,8 +122,10 @@ const AIAgents = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      toast.success('Autonomy level updated.');
       fetchData();
     } catch (error) {
+      toast.error('Failed to update autonomy level.');
       console.error('Error updating autonomy:', error);
     }
   };
@@ -135,8 +139,10 @@ const AIAgents = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
+      toast.success(response === 'approve' ? 'Action approved and executed.' : 'Action rejected.');
       fetchData();
     } catch (error) {
+      toast.error('Failed to respond to action.');
       console.error('Error responding to action:', error);
     }
   };
@@ -171,6 +177,7 @@ const AIAgents = () => {
   };
 
   const handleRunCycle = async (agentId) => {
+    const toastId = toast.loading('Running AI analysis cycle…');
     try {
       const token = localStorage.getItem('token');
       await axios.post(
@@ -179,8 +186,10 @@ const AIAgents = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success('Agent cycle started! Check back in a few moments for results.');
+      toast.success('Analysis complete! New suggestions may be available.', { id: toastId });
+      setTimeout(() => fetchData(), 2000);
     } catch (error) {
+      toast.error('Failed to run cycle. Try again.', { id: toastId });
       console.error('Error running cycle:', error);
     }
   };
@@ -214,7 +223,13 @@ const AIAgents = () => {
       renewal_specialist: '🔄',
       cross_sell_advisor: '💰',
       account_health_monitor: '❤️',
-      pipeline_optimizer: '📊'
+      pipeline_optimizer: '📊',
+      // legacy aliases
+      engagement_tracker: '📈',
+      revenue_optimizer: '💹',
+      onboarding_assistant: '🎓',
+      competitor_tracker: '🔍',
+      renewal_manager: '🔄'
     };
     return icons[type] || '🤖';
   };
@@ -969,10 +984,10 @@ const AIAgents = () => {
                           secondary={
                             <>
                               <Typography component="span" variant="caption" display="block">
-                                Type: {action.actionType}
+                                Type: {action.actionType?.replace(/_/g, ' ')}
                               </Typography>
                               <Typography component="span" variant="caption" display="block">
-                                Entity: {action.entityType}
+                                Priority: {action.priority || 'medium'} · Entity: {action.entityType}
                               </Typography>
                             </>
                           }
@@ -981,7 +996,8 @@ const AIAgents = () => {
                           <IconButton
                             edge="end"
                             color="success"
-                            onClick={() => handleRespondToAction(suggestion.agentId, idx, 'approve')}
+                            title="Approve & Execute"
+                            onClick={() => handleRespondToAction(suggestion.agentId, action.actionIndex ?? idx, 'approve')}
                             sx={{ mr: 1 }}
                           >
                             <FiCheckCircle />
@@ -989,7 +1005,8 @@ const AIAgents = () => {
                           <IconButton
                             edge="end"
                             color="error"
-                            onClick={() => handleRespondToAction(suggestion.agentId, idx, 'reject')}
+                            title="Reject"
+                            onClick={() => handleRespondToAction(suggestion.agentId, action.actionIndex ?? idx, 'reject')}
                           >
                             <FiXCircle />
                           </IconButton>

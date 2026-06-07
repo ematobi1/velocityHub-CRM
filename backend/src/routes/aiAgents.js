@@ -40,7 +40,7 @@ router.get('/templates', auth, async (req, res) => {
       {
         name: 'deal_coach',
         displayName: 'Deal Coach AI',
-        description: 'Monitors deals and provides coaching to close faster',
+        description: 'Monitors deals and provides AI coaching to close faster — flags stagnant deals and suggests next steps',
         icon: '🎯',
         autonomyLevel: 'suggest_only',
         estimatedImpact: 'high'
@@ -48,7 +48,7 @@ router.get('/templates', auth, async (req, res) => {
       {
         name: 'churn_prevention',
         displayName: 'Churn Prevention AI',
-        description: 'Predicts and prevents customer churn proactively',
+        description: 'Predicts and prevents customer churn proactively — detects at-risk accounts before they leave',
         icon: '🛡️',
         autonomyLevel: 'act_with_approval',
         estimatedImpact: 'critical'
@@ -56,15 +56,55 @@ router.get('/templates', auth, async (req, res) => {
       {
         name: 'lead_conversion',
         displayName: 'Lead Conversion AI',
-        description: 'Optimizes lead conversion with intelligent nurturing',
+        description: 'Optimizes lead conversion with intelligent nurturing — prioritizes hot leads and suggests outreach',
         icon: '🚀',
+        autonomyLevel: 'suggest_only',
+        estimatedImpact: 'high'
+      },
+      {
+        name: 'customer_success',
+        displayName: 'Customer Success AI',
+        description: 'Ensures customers achieve their goals — monitors onboarding, adoption, and satisfaction',
+        icon: '⭐',
+        autonomyLevel: 'act_with_approval',
+        estimatedImpact: 'high'
+      },
+      {
+        name: 'renewal_specialist',
+        displayName: 'Renewal Specialist AI',
+        description: 'Manages renewal pipeline and maximizes retention — never miss a renewal opportunity',
+        icon: '🔄',
+        autonomyLevel: 'act_with_approval',
+        estimatedImpact: 'critical'
+      },
+      {
+        name: 'cross_sell_advisor',
+        displayName: 'Cross-Sell Advisor AI',
+        description: 'Identifies upsell and cross-sell opportunities — grows revenue from existing customers',
+        icon: '💰',
+        autonomyLevel: 'suggest_only',
+        estimatedImpact: 'high'
+      },
+      {
+        name: 'account_health_monitor',
+        displayName: 'Account Health Monitor',
+        description: 'Continuously monitors account health — flags at-risk accounts with early warning signals',
+        icon: '❤️',
+        autonomyLevel: 'act_with_approval',
+        estimatedImpact: 'critical'
+      },
+      {
+        name: 'pipeline_optimizer',
+        displayName: 'Pipeline Optimizer AI',
+        description: 'Analyzes and optimizes your sales pipeline — identifies bottlenecks and accelerates velocity',
+        icon: '📊',
         autonomyLevel: 'suggest_only',
         estimatedImpact: 'high'
       },
       {
         name: 'support_assistant',
         displayName: 'Support Assistant AI',
-        description: 'Analyzes support patterns and prevents issues',
+        description: 'Analyzes support patterns and prevents recurring issues — improves customer satisfaction',
         icon: '🤖',
         autonomyLevel: 'fully_autonomous',
         estimatedImpact: 'medium'
