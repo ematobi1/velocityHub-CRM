@@ -27,8 +27,8 @@ jobs:
         run: npm run build
         working-directory: frontend
         env:
-          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL || 'https://velocityhub-api.up.railway.app/api' }}
-          REACT_APP_SOCKET_URL: ${{ secrets.REACT_APP_SOCKET_URL || 'https://velocityhub-api.up.railway.app' }}
+          REACT_APP_API_URL: https://velocityhub-api.onrender.com/api
+          REACT_APP_SOCKET_URL: https://velocityhub-api.onrender.com
           CI: false
 
       - name: Deploy to Netlify
@@ -44,18 +44,8 @@ jobs:
           NETLIFY_SITE_ID: ea0d3858-ade6-4c96-8c48-f7e690c2926b
 
   deploy-backend:
-    name: Deploy Backend to Railway
+    name: Deploy Backend to Render
     runs-on: ubuntu-latest
     steps:
-     - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Install Railway CLI
-      run: npm install -g @railway/cli
-
-    - name: Deploy to Railway
-      working-directory: backend
-      run: railway up --environment production --detach
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        RAILWAY_PROJECT_ID: d9b0daae-f5fc-47fd-bb92-f6bc171086d1
+      - name: Trigger Render deploy hook
+        run: curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
