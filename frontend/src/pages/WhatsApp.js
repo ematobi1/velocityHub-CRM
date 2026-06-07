@@ -65,6 +65,45 @@ function MessageBubble({ msg }) {
   );
 }
 
+function TwilioSetupGuide() {
+  return (
+    <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
+      <div className="max-w-lg w-full bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+        <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mb-5">
+          <FiMessageSquare size={28} className="text-green-600" />
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">WhatsApp not configured</h2>
+        <p className="text-sm text-gray-500 mb-6">
+          To send WhatsApp messages, add your Twilio credentials as environment variables on Railway.
+        </p>
+
+        <div className="space-y-3 mb-6">
+          {[
+            { key: 'TWILIO_ACCOUNT_SID', desc: 'Found in Twilio Console → Account Info' },
+            { key: 'TWILIO_AUTH_TOKEN', desc: 'Found in Twilio Console → Account Info' },
+            { key: 'TWILIO_PHONE_NUMBER', desc: 'Your Twilio WhatsApp number e.g. +14155238886' },
+          ].map(item => (
+            <div key={item.key} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+              <p className="text-xs font-mono font-semibold text-gray-800">{item.key}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-sm text-gray-500 space-y-2 border-t border-gray-100 pt-5">
+          <p className="font-medium text-gray-700">How to add them on Railway:</p>
+          <ol className="list-decimal list-inside space-y-1 text-xs text-gray-500">
+            <li>Go to railway.app → your project → VelocityHub backend service</li>
+            <li>Click <strong>Variables</strong> tab</li>
+            <li>Add each variable above with your Twilio values</li>
+            <li>Railway will auto-redeploy — return here to send messages</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function WhatsApp() {
   const [threads, setThreads] = useState([]);
   const [selectedPhone, setSelectedPhone] = useState(null);
@@ -75,6 +114,7 @@ export default function WhatsApp() {
   const [loadingThreads, setLoadingThreads] = useState(true);
   const [templates, setTemplates] = useState([]);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [twilioConfigured, setTwilioConfigured] = useState(null);
   const bottomRef = useRef(null);
 
   const loadThreads = useCallback(async () => {
@@ -83,7 +123,7 @@ export default function WhatsApp() {
       const res = await whatsappAPI.getThreads();
       setThreads(res.threads || []);
     } catch {
-      // silently handle — Twilio might not be configured in dev
+      // silently handle
     } finally {
       setLoadingThreads(false);
     }
@@ -100,6 +140,9 @@ export default function WhatsApp() {
   }, []);
 
   useEffect(() => {
+    whatsappAPI.getStatus()
+      .then(r => setTwilioConfigured(r.configured))
+      .catch(() => setTwilioConfigured(false));
     loadThreads();
     whatsappAPI.getTemplates().then(r => setTemplates(r.templates || [])).catch(() => {});
   }, [loadThreads]);
@@ -134,6 +177,15 @@ export default function WhatsApp() {
     setNewMsg(tpl.body);
     setShowTemplates(false);
   };
+
+  if (twilioConfigured === false) {
+    return (
+      <div className="flex h-full" style={{ height: 'calc(100vh - 4rem)' }}>
+        <ThreadList threads={[]} selected={null} onSelect={() => {}} loading={false} />
+        <TwilioSetupGuide />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full" style={{ height: 'calc(100vh - 4rem)' }}>

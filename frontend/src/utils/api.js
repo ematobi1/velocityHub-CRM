@@ -168,7 +168,8 @@ export const whatsappAPI = {
   send: (data) => api.post('/whatsapp/send', data),
   getThread: (phone) => api.get(`/whatsapp/thread/${phone}`),
   getThreads: () => api.get('/whatsapp/threads'),
-  getTemplates: () => api.get('/whatsapp/templates')
+  getTemplates: () => api.get('/whatsapp/templates'),
+  getStatus: () => api.get('/whatsapp/status')
 };
 
 export default api;

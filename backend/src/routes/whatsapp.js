@@ -106,6 +106,12 @@ router.post('/webhook', express.urlencoded({ extended: false }), (req, res) => {
   res.send('<Response></Response>');
 });
 
+// GET /api/whatsapp/status — check if Twilio is configured
+router.get('/status', auth, (req, res) => {
+  const configured = !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER);
+  res.json({ configured });
+});
+
 // GET /api/whatsapp/templates — pre-built message templates
 router.get('/templates', auth, (req, res) => {
   res.json({
