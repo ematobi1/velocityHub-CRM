@@ -106,10 +106,24 @@ function Companies() {
     setIsModalOpen(false);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to archive this company?')) {
-      await deleteMutation.mutateAsync(id);
-    }
+  const handleDelete = (id) => {
+    toast((t) => (
+      <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ fontSize: 14, fontWeight: 500 }}>Archive this company?</span>
+        <button
+          onClick={async () => { toast.dismiss(t.id); await deleteMutation.mutateAsync(id); }}
+          style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}
+        >
+          Archive
+        </button>
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          style={{ background: '#e5e7eb', color: '#374151', border: 'none', padding: '4px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}
+        >
+          Cancel
+        </button>
+      </span>
+    ), { duration: 8000 });
   };
 
   const formatCurrency = (value) => {

@@ -141,20 +141,33 @@ const AIAgents = () => {
     }
   };
 
-  const handleDeleteAgent = async (agentId) => {
-    if (!window.confirm('Are you sure you want to delete this agent?')) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(
-        `${API_BASE_URL}/ai-agents/${agentId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      fetchData();
-    } catch (error) {
-      console.error('Error deleting agent:', error);
-    }
+  const handleDeleteAgent = (agentId) => {
+    toast((t) => (
+      <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ fontSize: 14, fontWeight: 500 }}>Delete this agent?</span>
+        <button
+          onClick={async () => {
+            toast.dismiss(t.id);
+            try {
+              const token = localStorage.getItem('token');
+              await axios.delete(`${API_BASE_URL}/ai-agents/${agentId}`, { headers: { Authorization: `Bearer ${token}` } });
+              fetchData();
+            } catch (error) {
+              console.error('Error deleting agent:', error);
+            }
+          }}
+          style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '4px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}
+        >
+          Delete
+        </button>
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          style={{ background: '#e5e7eb', color: '#374151', border: 'none', padding: '4px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}
+        >
+          Cancel
+        </button>
+      </span>
+    ), { duration: 8000 });
   };
 
   const handleRunCycle = async (agentId) => {
