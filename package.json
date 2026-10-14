@@ -45,5 +45,8 @@
   "workspaces": [
     "backend",
     "frontend"
-  ]
+  ],
+  "overrides": {
+    "resolve-url-loader": "^5.0.0"
+  }
 }

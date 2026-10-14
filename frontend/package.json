@@ -28,9 +28,12 @@
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.5.1",
     "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.32",
+    "postcss": "^8.5.30",
     "react-scripts": "5.0.1",
     "tailwindcss": "^3.3.5"
+  },
+  "overrides": {
+    "resolve-url-loader": "^5.0.0"
   },
   "scripts": {
     "start": "react-scripts start",

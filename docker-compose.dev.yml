@@ -34,7 +34,7 @@ services:
       retries: 5
 
   backend:
-    image: node:18-alpine
+    image: node:22-alpine
     container_name: velocityhub-backend-dev
     working_dir: /app
     command: npm run dev
