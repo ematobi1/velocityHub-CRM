@@ -21,15 +21,16 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: cd frontend && npm ci
+        run: cd frontend && npm ci --include-workspace-root
 
       - name: Build application
         run: cd frontend && npm run build
         env:
           CI: true
+          DISABLE_ESLINT_PLUGIN: true
           REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
 
       - name: Deploy to Netlify

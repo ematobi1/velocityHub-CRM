@@ -18,7 +18,7 @@ class WorkflowEngine {
       contact: Contact,
       deal: Deal,
       task: Task,
-      company: Company
+      company: Company,
     };
   }
 
@@ -31,7 +31,7 @@ class WorkflowEngine {
       const workflows = await Workflow.find({
         entity,
         'trigger.type': triggerType,
-        status: 'active'
+        status: 'active',
       });
 
       logger.info(`Found ${workflows.length} workflows for trigger ${triggerType} on ${entity}`);
@@ -77,7 +77,7 @@ class WorkflowEngine {
       // Check if record has already been processed (if runOnce is true)
       if (workflow.settings.runOnce) {
         const alreadyProcessed = workflow.recentExecutions.some(
-          e => e.recordId.toString() === recordId.toString() && e.status === 'success'
+          (e) => e.recordId.toString() === recordId.toString() && e.status === 'success'
         );
 
         if (alreadyProcessed) {
@@ -102,7 +102,7 @@ class WorkflowEngine {
           if (action.type === 'wait') {
             await this.executeWaitAction(action);
           } else {
-            await this.executeAction(action, record, workflow);
+            await this.executeAction(action, record);
           }
 
           actionsCompleted++;
@@ -126,7 +126,7 @@ class WorkflowEngine {
         actionsCompleted,
         actionsFailed,
         error,
-        executionTime
+        executionTime,
       });
 
       await workflow.save();
@@ -146,7 +146,7 @@ class WorkflowEngine {
         actionsCompleted,
         actionsFailed: workflow.actions.length,
         error: error.message,
-        executionTime
+        executionTime,
       });
 
       await workflow.save();
@@ -261,7 +261,7 @@ class WorkflowEngine {
   /**
    * Execute a specific action
    */
-  async executeAction(action, record, workflow) {
+  async executeAction(action, record) {
     logger.info(`Executing action: ${action.type}`);
 
     switch (action.type) {
@@ -359,7 +359,7 @@ class WorkflowEngine {
     }
 
     try {
-      const transporter = nodemailer.createTransporter({
+      const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT || 587,
         secure: process.env.SMTP_PORT == 465,
@@ -422,7 +422,7 @@ class WorkflowEngine {
   }
 
   async createTaskAction(action, record) {
-    const { taskTitle, taskDescription, taskDueDate, taskPriority, assignTo } = action.config;
+    const { taskTitle, taskDescription, taskDueDate, taskPriority } = action.config;
 
     const dueDate = this.calculateDueDate(taskDueDate);
 
@@ -433,7 +433,7 @@ class WorkflowEngine {
       priority: taskPriority || 'medium',
       assignedTo: record.owner || null,
       lead: record._id,
-      status: 'pending'
+      status: 'pending',
     });
 
     await task.save();
@@ -448,7 +448,7 @@ class WorkflowEngine {
       value: dealValue,
       stage: dealStage || 'prospecting',
       lead: record._id,
-      owner: record.owner
+      owner: record.owner,
     });
 
     await deal.save();
@@ -460,7 +460,7 @@ class WorkflowEngine {
 
     if (!record.tags) record.tags = [];
 
-    tags.forEach(tag => {
+    tags.forEach((tag) => {
       if (!record.tags.includes(tag)) {
         record.tags.push(tag);
       }
@@ -473,7 +473,7 @@ class WorkflowEngine {
     const { tags } = action.config;
 
     if (record.tags) {
-      record.tags = record.tags.filter(tag => !tags.includes(tag));
+      record.tags = record.tags.filter((tag) => !tags.includes(tag));
       await record.save();
     }
   }
@@ -511,8 +511,14 @@ class WorkflowEngine {
       let minCount = Infinity;
 
       for (const user of users) {
-        const leadCount = await Lead.countDocuments({ owner: user._id, status: { $nin: ['converted', 'lost'] } });
-        const dealCount = await Deal.countDocuments({ owner: user._id, stage: { $nin: ['closed_won', 'closed_lost'] } });
+        const leadCount = await Lead.countDocuments({
+          owner: user._id,
+          status: { $nin: ['converted', 'lost'] },
+        });
+        const dealCount = await Deal.countDocuments({
+          owner: user._id,
+          stage: { $nin: ['closed_won', 'closed_lost'] },
+        });
         const totalCount = leadCount + dealCount;
 
         if (totalCount < minCount) {
@@ -524,7 +530,9 @@ class WorkflowEngine {
       if (leastLoadedUser) {
         record.owner = leastLoadedUser._id;
         await record.save();
-        logger.info(`Assigned to ${leastLoadedUser.email} via least-loaded (${minCount} active records)`);
+        logger.info(
+          `Assigned to ${leastLoadedUser.email} via least-loaded (${minCount} active records)`
+        );
       }
     }
   }
@@ -646,7 +654,7 @@ class WorkflowEngine {
       if (!sequence.subscribers) sequence.subscribers = [];
 
       const existingSubscriber = sequence.subscribers.find(
-        sub => sub.entityId.toString() === record._id.toString()
+        (sub) => sub.entityId.toString() === record._id.toString()
       );
 
       if (!existingSubscriber) {
@@ -675,26 +683,13 @@ class WorkflowEngine {
     if (!record.notes) record.notes = [];
     record.notes.push({
       content: this.replaceVariables(action.config.noteContent, record),
-      createdAt: new Date()
+      createdAt: new Date(),
     });
     await record.save();
   }
 
   async executeWaitAction(action) {
     const { waitDuration, waitUnit } = action.config;
-    let milliseconds = waitDuration;
-
-    switch (waitUnit) {
-      case 'minutes':
-        milliseconds *= 60 * 1000;
-        break;
-      case 'hours':
-        milliseconds *= 60 * 60 * 1000;
-        break;
-      case 'days':
-        milliseconds *= 24 * 60 * 60 * 1000;
-        break;
-    }
 
     // For real implementation, this should be async/scheduled
     logger.info(`Would wait ${waitDuration} ${waitUnit}`);
@@ -730,10 +725,10 @@ class WorkflowEngine {
       '{{lastName}}': record.lastName || '',
       '{{email}}': record.email || '',
       '{{company}}': record.company || '',
-      '{{phone}}': record.phone || ''
+      '{{phone}}': record.phone || '',
     };
 
-    Object.keys(replacements).forEach(key => {
+    Object.keys(replacements).forEach((key) => {
       result = result.replace(new RegExp(key, 'g'), replacements[key]);
     });
 
@@ -753,7 +748,7 @@ class WorkflowEngine {
 
       const scheduledWorkflows = await Workflow.find({
         status: 'active',
-        'trigger.type': 'time_based'
+        'trigger.type': 'time_based',
       });
 
       for (const workflow of scheduledWorkflows) {
@@ -810,7 +805,7 @@ class WorkflowEngine {
     try {
       const inactivityWorkflows = await Workflow.find({
         status: 'active',
-        'trigger.type': 'inactivity'
+        'trigger.type': 'inactivity',
       });
 
       const now = new Date();
@@ -821,7 +816,7 @@ class WorkflowEngine {
 
         const Model = this.models[workflow.entity];
         const inactiveRecords = await Model.find({
-          updatedAt: { $lt: thresholdDate }
+          updatedAt: { $lt: thresholdDate },
         });
 
         for (const record of inactiveRecords) {
